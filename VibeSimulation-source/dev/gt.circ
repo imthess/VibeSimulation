@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project source="3.8.0" version="1.0">
+  <lib desc="#Wiring" name="0"/>
+  <lib desc="#Gates" name="1"/>
+  <lib desc="#Plexers" name="2"/>
+  <lib desc="#Arithmetic" name="3"/>
+  <lib desc="#Memory" name="4"/>
+  <lib desc="#I/O" name="5"/>
+  <lib desc="#TTL" name="A"/>
+  <lib desc="#TCL" name="7"/>
+  <lib desc="#Base" name="8"/>
+  <lib desc="#BFH-Praktika" name="9"/>
+  <lib desc="#Input/Output-Extra" name="B"/>
+  <lib desc="#Soc" name="C"/>
+  <main name="main"/>
+  <options>
+    <a name="showgrid" val="true"/>
+    <a name="simulate" val="true"/>
+    <a name="showghosts" val="true"/>
+    <a name="zoom" val="1.0"/>
+  </options>
+  <mappings>
+    <tool lib="8" map="Button2" name="Poke Tool"/>
+    <tool lib="8" map="Button3" name="Menu Tool"/>
+    <tool lib="8" map="Ctrl Button1" name="Menu Tool"/>
+  </mappings>
+  <toolbar>
+    <tool lib="8" name="Poke Tool"/>
+    <tool lib="8" name="Edit Tool"/>
+    <tool lib="8" name="Wiring Tool"/>
+    <tool lib="8" name="Text Tool"/>
+    <sep/>
+    <tool lib="0" name="Pin">
+      <a name="tristate" val="false"/>
+    </tool>
+    <tool lib="0" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+    </tool>
+    <sep/>
+    <tool lib="1" name="NOT Gate"/>
+    <tool lib="1" name="AND Gate"/>
+    <tool lib="1" name="OR Gate"/>
+    <tool lib="1" name="XOR Gate"/>
+    <tool lib="1" name="NAND Gate"/>
+    <tool lib="1" name="NOR Gate"/>
+    <sep/>
+    <tool lib="4" name="D Flip-Flop"/>
+    <tool lib="4" name="Register"/>
+  </toolbar>
+  <circuit name="main">
+    <a name="circuit" val="main"/>
+    <comp lib="1" loc="(300,300)" name="AND Gate">
+      <a name="inputs" val="2"/>
+      <a name="size" val="50"/>
+    </comp>
+    <comp lib="1" loc="(700,300)" name="AND Gate">
+      <a name="inputs" val="5"/>
+      <a name="size" val="50"/>
+    </comp>
+    <comp lib="1" loc="(1100,300)" name="AND Gate">
+      <a name="inputs" val="6"/>
+      <a name="size" val="50"/>
+    </comp>
+    <comp lib="1" loc="(1500,300)" name="AND Gate">
+      <a name="inputs" val="3"/>
+      <a name="size" val="50"/>
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="1" loc="(1900,300)" name="NOT Gate">
+    </comp>
+    <comp lib="1" loc="(2300,300)" name="Buffer">
+    </comp>
+    <comp lib="1" loc="(300,700)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+      <a name="size" val="50"/>
+    </comp>
+    <comp lib="1" loc="(700,700)" name="NOR Gate">
+      <a name="inputs" val="2"/>
+      <a name="size" val="50"/>
+    </comp>
+    <comp lib="1" loc="(1100,700)" name="XOR Gate">
+      <a name="inputs" val="4"/>
+      <a name="size" val="50"/>
+      <a name="xor" val="odd"/>
+    </comp>
+    <comp lib="1" loc="(1500,700)" name="XNOR Gate">
+      <a name="inputs" val="3"/>
+      <a name="size" val="50"/>
+      <a name="xor" val="odd"/>
+    </comp>
+    <comp lib="1" loc="(1900,700)" name="Odd Parity">
+      <a name="inputs" val="3"/>
+      <a name="size" val="50"/>
+    </comp>
+    <comp lib="1" loc="(2300,700)" name="Even Parity">
+      <a name="inputs" val="4"/>
+      <a name="size" val="50"/>
+    </comp>
+    <comp lib="0" loc="(300,1100)" name="Constant">
+      <a name="width" val="4"/>
+      <a name="value" val="0x5"/>
+    </comp>
+    <comp lib="0" loc="(700,1100)" name="Power">
+    </comp>
+    <comp lib="0" loc="(1100,1100)" name="Ground">
+    </comp>
+    <comp lib="0" loc="(1500,1100)" name="Splitter">
+      <a name="fanout" val="4"/>
+      <a name="incoming" val="4"/>
+      <a name="appear" val="center"/>
+      <a name="bit0" val="0"/>
+      <a name="bit1" val="1"/>
+      <a name="bit2" val="2"/>
+      <a name="bit3" val="3"/>
+    </comp>
+    <comp lib="0" loc="(1900,1100)" name="Splitter">
+      <a name="fanout" val="2"/>
+      <a name="incoming" val="4"/>
+      <a name="appear" val="center"/>
+      <a name="bit0" val="0"/>
+      <a name="bit1" val="0"/>
+      <a name="bit2" val="1"/>
+      <a name="bit3" val="1"/>
+    </comp>
+    <comp lib="0" loc="(2300,1100)" name="Splitter">
+      <a name="fanout" val="3"/>
+      <a name="incoming" val="4"/>
+      <a name="appear" val="center"/>
+      <a name="bit0" val="0"/>
+      <a name="bit1" val="1"/>
+      <a name="bit2" val="1"/>
+      <a name="bit3" val="2"/>
+    </comp>
+    <comp lib="0" loc="(300,1500)" name="Splitter">
+      <a name="fanout" val="4"/>
+      <a name="incoming" val="4"/>
+      <a name="appear" val="center"/>
+      <a name="facing" val="west"/>
+      <a name="bit0" val="0"/>
+      <a name="bit1" val="1"/>
+      <a name="bit2" val="2"/>
+      <a name="bit3" val="3"/>
+    </comp>
+    <comp lib="0" loc="(700,1500)" name="Splitter">
+      <a name="fanout" val="2"/>
+      <a name="incoming" val="4"/>
+      <a name="appear" val="center"/>
+      <a name="facing" val="west"/>
+      <a name="bit0" val="0"/>
+      <a name="bit1" val="0"/>
+      <a name="bit2" val="0"/>
+      <a name="bit3" val="1"/>
+    </comp>
+    <comp lib="0" loc="(1100,1500)" name="Bit Extender">
+      <a name="in_width" val="8"/>
+      <a name="out_width" val="16"/>
+      <a name="type" val="zero"/>
+    </comp>
+    <comp lib="2" loc="(1500,1500)" name="Multiplexer">
+      <a name="select" val="1"/>
+      <a name="width" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(1900,1500)" name="Multiplexer">
+      <a name="select" val="2"/>
+      <a name="width" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(2300,1500)" name="Multiplexer">
+      <a name="select" val="3"/>
+      <a name="width" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(300,1900)" name="Multiplexer">
+      <a name="select" val="4"/>
+      <a name="width" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(700,1900)" name="Demultiplexer">
+      <a name="select" val="1"/>
+      <a name="width" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(1100,1900)" name="Demultiplexer">
+      <a name="select" val="2"/>
+      <a name="width" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(1500,1900)" name="Demultiplexer">
+      <a name="select" val="3"/>
+      <a name="width" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(1900,1900)" name="Demultiplexer">
+      <a name="select" val="4"/>
+      <a name="width" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(2300,1900)" name="Decoder">
+      <a name="select" val="1"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(300,2300)" name="Decoder">
+      <a name="select" val="2"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(700,2300)" name="Decoder">
+      <a name="select" val="3"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(1100,2300)" name="Decoder">
+      <a name="select" val="4"/>
+      <a name="enable" val="true"/>
+    </comp>
+    <comp lib="2" loc="(1500,2300)" name="Priority Encoder">
+      <a name="select" val="1"/>
+    </comp>
+    <comp lib="2" loc="(1900,2300)" name="Priority Encoder">
+      <a name="select" val="2"/>
+    </comp>
+    <comp lib="2" loc="(2300,2300)" name="Priority Encoder">
+      <a name="select" val="3"/>
+    </comp>
+    <comp lib="2" loc="(300,2700)" name="Priority Encoder">
+      <a name="select" val="4"/>
+    </comp>
+    <comp lib="2" loc="(700,2700)" name="BitSelector">
+      <a name="width" val="8"/>
+      <a name="group" val="2"/>
+    </comp>
+    <comp lib="2" loc="(1100,2700)" name="BitSelector">
+      <a name="width" val="8"/>
+      <a name="group" val="1"/>
+    </comp>
+    <comp lib="3" loc="(1500,2700)" name="Adder">
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="3" loc="(1900,2700)" name="Subtractor">
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="3" loc="(2300,2700)" name="Multiplier">
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="3" loc="(300,3100)" name="Divider">
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="3" loc="(700,3100)" name="Negator">
+      <a name="width" val="4"/>
+    </comp>
+    <comp lib="3" loc="(1100,3100)" name="Comparator">
+      <a name="width" val="4"/>
+      <a name="mode" val="unsigned"/>
+    </comp>
+    <comp lib="3" loc="(1500,3100)" name="Shifter">
+      <a name="width" val="4"/>
+      <a name="shift" val="ll"/>
+    </comp>
+    <comp lib="3" loc="(1900,3100)" name="BitFinder">
+      <a name="width" val="4"/>
+      <a name="type" val="low1"/>
+    </comp>
+    <comp lib="3" loc="(2300,3100)" name="Adder">
+      <a name="width" val="1"/>
+    </comp>
+    <comp lib="3" loc="(300,3500)" name="BitAdder">
+      <a name="width" val="4"/>
+      <a name="inputs" val="1"/>
+    </comp>
+    <comp lib="3" loc="(700,3500)" name="BitAdder">
+      <a name="width" val="4"/>
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="3" loc="(1100,3500)" name="BitAdder">
+      <a name="width" val="4"/>
+      <a name="inputs" val="3"/>
+    </comp>
+    <comp lib="3" loc="(1500,3500)" name="BitAdder">
+      <a name="width" val="4"/>
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="3" loc="(1900,3500)" name="BitAdder">
+      <a name="width" val="4"/>
+      <a name="inputs" val="5"/>
+    </comp>
+    <comp lib="3" loc="(2300,3500)" name="BitAdder">
+      <a name="width" val="4"/>
+      <a name="inputs" val="6"/>
+    </comp>
+    <comp lib="3" loc="(300,3900)" name="BitAdder">
+      <a name="width" val="4"/>
+      <a name="inputs" val="7"/>
+    </comp>
+    <comp lib="3" loc="(700,3900)" name="BitAdder">
+      <a name="width" val="4"/>
+      <a name="inputs" val="8"/>
+    </comp>
+    <comp lib="5" loc="(1100,3900)" name="LED">
+      <a name="facing" val="west"/>
+    </comp>
+    <comp lib="5" loc="(1500,3900)" name="7-Segment Display">
+    </comp>
+    <comp lib="5" loc="(1900,3900)" name="Hex Digit Display">
+    </comp>
+  </circuit>
+</project>

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=VibeSimulation
+Comment=Digital, analog and VLSI circuit simulation
+Exec=VibeSimulation
+Icon=VibeSimulation
+Categories=Education;Electronics;Engineering;
+Terminal=false
