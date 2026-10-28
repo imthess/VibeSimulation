@@ -1,8 +1,0 @@
-circuits 25 layout fails 0 mismatches 0 secs 25
-circuits 25 layout fails 0 mismatches 0 secs 24
-circuits 25 layout fails 0 mismatches 0 secs 22
-circuits 25 layout fails 0 mismatches 0 secs 24
-MISMATCH 10 32 32 32 [('Constant', {'width': 2, 'value': 2}, {}, {'Out': 'n1_Out'}), ('AND', {'inputs': 2, 'width': 1}, {'In1': 'A', 'In2': 'A'}, {'Out': 'n2_Out'}), ('Adder', {'width': 1}, {'A': 'A', 'B': 'n2_Out'}, {'Sum': 'n3_Sum'}), ('ENCODER', {'select': 1}, {'In0': 'A', 'In1': 'n2_Out'}, {'Out
-circuits 25 layout fails 0 mismatches 1 secs 22
-LAYOUT FAIL 3 Could not draw this circuit without ambiguous wires; try a smaller circuit [Could not route signal 'n1_GT']
-circuits 25 layout fails 1 mismatches 0 secs 23

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+build/
+dist/
+*.egg-info/
+.venv/
+.pytest_cache/
+*.tar.gz
+*.zip
+.DS_Store
+# third-party Logisim jar used only by a few comparison scripts in dev/ (download it yourself, see dev/README.md)
+dev/logisim.jar

@@ -1,0 +1,23 @@
+name: Build installers
+on:
+  push: {tags: ["v*"]}
+  workflow_dispatch:
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-tk
+      - run: python packaging/build.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VibeSimulation-${{ runner.os }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
