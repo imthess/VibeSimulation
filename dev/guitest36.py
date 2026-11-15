@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 import tkinter as tk
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.ui.main_window import MainWindow
-from vibesimulation.analog.layout import pin_xy
+from vibesimulation.workspaces.multisim.engine.layout import pin_xy
 root = tk.Tk(); root.geometry("1400x900"); w = MainWindow(root); ok = True
 def chk(n, c):
     global ok; print(("ok  " if c else "FAIL"), n); ok = ok and bool(c)

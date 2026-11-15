@@ -1,9 +1,9 @@
 """New DC parts and analyses: dependent sources, Zener, LED, switch, meters, sweep, Thevenin/Norton, SPICE text, round trips."""
 import sys, os, json, math
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-from vibesimulation.analog.netlist import parse, to_spice, dumps
-from vibesimulation.analog import analysis as AN
-from vibesimulation.analog.solver import SolveError
+from vibesimulation.workspaces.multisim.engine.netlist import parse, to_spice, dumps
+from vibesimulation.workspaces.multisim.engine import analysis as AN
+from vibesimulation.workspaces.multisim.engine.solver import SolveError
 bad = 0
 def ok(c, m):
     global bad
@@ -70,7 +70,7 @@ nl2 = parse(dumps(nl))[0]; ok(dumps(nl2) == dumps(nl), "round trip"); ok(nl2.par
 sp = to_spice(nl); ok(".model DZ_Z1 D(BV=3.3" in sp and "E1 o 0 b 0 2" in sp and ".dc V1 0 5 1" in sp and "RS1 a b 1e+12" in sp, f"spice\n{sp}")
 # random circuits with the new parts: KCL at every node, KVL per part, power balance
 import random
-from vibesimulation.analog.solver import is_ground
+from vibesimulation.workspaces.multisim.engine.solver import is_ground
 random.seed(11); checked = 0; refused = 0
 for t in range(400):
     n = random.randint(3, 7); nets = [f"n{i}" for i in range(1, n + 1)]; parts = [{"id": "V1", "type": "V", "value": random.choice([3, 5, 12]), "nodes": [nets[0], "0"]}]

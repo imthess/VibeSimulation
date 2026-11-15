@@ -40,12 +40,12 @@ class PaneWorkspace(tk.Frame):
             self.columnconfigure(i, weight=0, uniform=""); self.rowconfigure(i, weight=0, uniform="")
         g = dict(sticky="nsew", padx=0, pady=0)
         if len(vis) == 3:
-            self.views[vis[0]].card.grid(row=0, column=0, rowspan=2, **dict(g, padx=(0, 1)))
-            self.views[vis[1]].card.grid(row=0, column=1, **dict(g, pady=(0, 1))); self.views[vis[2]].card.grid(row=1, column=1, **g)
+            self.views[vis[0]].card.grid(row=0, column=0, rowspan=2, **g)
+            self.views[vis[1]].card.grid(row=0, column=1, **g); self.views[vis[2]].card.grid(row=1, column=1, **g)
             self.columnconfigure(0, weight=3, uniform="c"); self.columnconfigure(1, weight=2, uniform="c")
             for r in (0, 1): self.rowconfigure(r, weight=1, uniform="r")
         elif len(vis) == 2:
-            for c, k in enumerate(vis): self.views[k].card.grid(row=0, column=c, **dict(g, padx=(0, 1) if c == 0 else 0)); self.columnconfigure(c, weight=1, uniform="c")
+            for c, k in enumerate(vis): self.views[k].card.grid(row=0, column=c, **g); self.columnconfigure(c, weight=1, uniform="c")
             self.rowconfigure(0, weight=1)
         elif len(vis) == 1:
             self.views[vis[0]].card.grid(row=0, column=0, **g); self.columnconfigure(0, weight=1); self.rowconfigure(0, weight=1)

@@ -3,9 +3,9 @@ import sys, os
 sys.path.insert(0, os.path.dirname(__file__)); sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
 from svcheck import check
-from vibesimulation.systemverilog.compiler import lower
-from vibesimulation.systemverilog.features import preprocess as _p
-from vibesimulation.verilog.lexer import VError
+from vibesimulation.workspaces.systemverilog.engine.compiler import lower
+from vibesimulation.workspaces.systemverilog.engine.features import preprocess as _p
+from vibesimulation.workspaces.verilog.engine.lexer import VError
 bad = 0
 def ok(c, m):
     global bad
@@ -40,7 +40,7 @@ diff("always_ff with async reset and ++", """module cnt (input logic clk, rst, e
   always_comb begin ones = 0; for (int i = 0; i < 4; i++) ones += q[i]; end
 endmodule""", "cnt", [("rst", 1)])
 try:
-    from vibesimulation.vlsi.compiler import compile_text
+    from vibesimulation.workspaces.verilog.project.compiler import compile_text
     r = compile_text(lower("module lat (input logic en, input logic [3:0] d, output logic [3:0] q);\n  always_latch if (en) q <= d;\nendmodule").verilog, {}, "main")
     ok(r.errors and "latch" in r.errors[0][1] and r.errors[0][0] == 2, f"always_latch is reported like a latch in the Verilog tab (line {r.errors[0][0]})" if r.errors else "always_latch")
 except Exception as e: ok(False, f"always_latch: {e}")
@@ -150,9 +150,9 @@ ver = lower(src).verilog.split("\n")
 ok(ver[8].startswith("always") or "always" in ver[8], "the always_comb stays on line 9: " + ver[8][:40])
 
 # ---------------- testbenches written in SystemVerilog, run by the section's document
-from vibesimulation.systemverilog.document import SvDocument
-from vibesimulation.vlsi import simulation
-from vibesimulation.vlsi.testbench import testbench_names
+from vibesimulation.workspaces.systemverilog.engine.document import SvDocument
+from vibesimulation.workspaces.verilog.project import simulation
+from vibesimulation.workspaces.verilog.project.testbench import testbench_names
 def run_tb(design, tb):
     d = SvDocument(); errs = d.new_blank(design); d.set_inputs({}); d.set_testbench(tb)
     res, _ = simulation.run(d); return errs, res
@@ -186,9 +186,9 @@ ok(res.error is None and "INFO: fine 10" in res.text, "a task with $info: " + sh
 _d = SvDocument(); _d.new_blank(DES)
 ok(testbench_names(tb_with("check(q);"), _d.prepare) == ["tb"], "the testbench module is found after lowering")
 
-from vibesimulation.systemverilog import features as _F
+from vibesimulation.workspaces.systemverilog.engine import features as _F
 ok(sorted(_F.FALLBACK) == _F.FOUND, f"the fallback list names the {len(_F.FOUND)} feature files")
-from vibesimulation.systemverilog.feature import REGISTRY
+from vibesimulation.workspaces.systemverilog.engine.feature import REGISTRY
 ok(len(REGISTRY.ordered()) == len(_F.FOUND), "every feature file registered exactly one feature")
 # ---------------- errors
 fails("interface", "interface bus; endinterface", "interface")

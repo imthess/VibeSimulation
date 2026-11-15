@@ -129,3 +129,32 @@ def cut_pieces(segs, removed, drivers, sinks):
     keep = reach(left, drivers)
     kept = [left[i] for i in sorted(keep)]
     return kept, [p for p in sinks if not any(on_seg(s, p) for s in kept)]
+
+
+def prune(segs, ports):
+    """Take away loose ends: pieces of one signal's wire that lead nowhere (an end that is not on a pin and not joined to another piece).
+    Pieces are first cut at every junction, so a trunk that runs on past a branch loses only its dead stretch."""
+    segs = [tuple(s[:4]) for s in segs]; ports = set(ports)
+    cuts = set()
+    for s in segs:
+        for t in segs:
+            if t is s: continue
+            for q in ((t[0], t[1]), (t[2], t[3])):
+                if on_seg(s, q) and q not in ((s[0], s[1]), (s[2], s[3])): cuts.add((s, q))
+        for q in ports:
+            if on_seg(s, q) and q not in ((s[0], s[1]), (s[2], s[3])): cuts.add((s, q))
+    work = []
+    for s in segs:
+        pts = sorted({q for (a, q) in cuts if a == s}, key=lambda q: (q[0], q[1]))
+        a = (s[0], s[1])
+        for q in pts: work.append(norm(a, q)); a = q
+        work.append(norm(a, (s[2], s[3])))
+    work = list(dict.fromkeys(t for t in work if (t[0], t[1]) != (t[2], t[3])))
+    while True:
+        deg = {}
+        for t in work:
+            for q in ((t[0], t[1]), (t[2], t[3])): deg[q] = deg.get(q, 0) + 1
+        keep = [t for t in work if all(deg[q] > 1 or q in ports for q in ((t[0], t[1]), (t[2], t[3])))]
+        if len(keep) == len(work): break
+        work = keep
+    return tidy(work) if work else []

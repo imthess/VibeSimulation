@@ -2,8 +2,8 @@
 import sys, os, json, math, random, cmath
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse
-from vibesimulation.analog import ac, transient as T
+from vibesimulation.workspaces.multisim.engine.netlist import parse
+from vibesimulation.workspaces.multisim.engine import ac, transient as T
 seed, N = int(sys.argv[1]) if len(sys.argv) > 1 else 1, int(sys.argv[2]) if len(sys.argv) > 2 else 20
 rng = random.Random(seed); bad = done = 0; worst = 0.0
 for case in range(N):

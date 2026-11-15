@@ -4,7 +4,7 @@ import io
 import os
 
 from ..core.serializer import dumps
-from ..export.logisim import to_circ
+from ..workspaces.logisim.circ_file.logisim import to_circ
 from ..export.pdf import make_analog_pdf, make_pdf
 
 def circ_report(notes):
@@ -139,7 +139,7 @@ class AnalogActions:
     def new(self): self.doc.load_text(self.BLANK)
 
     def cir(self):
-        from ..analog.netlist import to_spice
+        from ..workspaces.multisim.engine.netlist import to_spice
         if self.doc.netlist is None or self.doc.errors: self.ctx.say("Download .cir", "There is no valid circuit yet."); return
         p = self._f._save("Save SPICE netlist", ".cir", "circuit.cir", to_spice(self.doc.netlist))
         if p: self.ctx.say("Saved", f"{p}\n\nIn Multisim: File > Import > From SPICE netlist. (Multisim's own .ms14 format is proprietary and cannot be written.)")
@@ -166,12 +166,12 @@ class AnalogActions:
         if p: self.ctx.say("Saved", p)
 
     def pdf(self):
-        from ..analog.layout import SchematicBuilder
+        from ..workspaces.multisim.engine.layout import SchematicBuilder
         d = self.doc
         if d.netlist is None or not d.valid: self.ctx.say("Download PDF", "There is no valid circuit yet: fix the JSON first."); return
         phasors = None
         try:
-            from ..analog import ac as AC, components as ACC
+            from ..workspaces.multisim.engine import ac as AC, components as ACC
             f = next((p.freq() for p in d.netlist.parts if isinstance(p, ACC.Waveform) and p.is_ac()), None)
             if f: prep = AC.prepare(d.netlist); pt = AC.point(prep, f); phasors = (pt, AC.power_summary(prep, pt))
         except ValueError: phasors = None

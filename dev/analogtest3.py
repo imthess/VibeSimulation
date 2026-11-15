@@ -2,8 +2,8 @@
 import sys, os, json, random, math
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse
-from vibesimulation.analog.solver import solve, SolveError
+from vibesimulation.workspaces.multisim.engine.netlist import parse
+from vibesimulation.workspaces.multisim.engine.solver import solve, SolveError
 seed, N = int(sys.argv[1]) if len(sys.argv) > 1 else 1, int(sys.argv[2]) if len(sys.argv) > 2 else 200
 reasons = {}
 rng = random.Random(seed); ok = refused = bad = invalid = 0; types = {}

@@ -3,8 +3,8 @@ import sys, json, re, subprocess, itertools
 sys.path.insert(0, "src")
 import vibesimulation.components
 from vibesimulation.components.registry import ComponentRegistry as R
-from vibesimulation.export.logisim import HEAD, _open
-from vibesimulation.imports.logisim_in import parse_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import HEAD, _open
+from vibesimulation.workspaces.logisim.circ_file.logisim_in import parse_circ
 from vibesimulation.core.serializer import parse
 head = HEAD.replace("@MAIN@", "main")
 bad = 0
@@ -23,7 +23,7 @@ for w, extra, look in itertools.product((1, 8), ({}, {"clearpin": "true"}, {"tri
 # export -> import
 d = {"inputs": [{"name": "a", "width": 4}, {"name": "d", "width": 8}, "we", "clk", "oe"], "outputs": [{"name": "q", "width": 8}], "gates": [
     {"id": "m", "type": "RAM", "addr": 4, "asyncread": True, "readbehav": "beforewrite", "in": {"A": "a", "Din": "d", "WE": "we", "Clk": "clk", "OE": "oe"}, "out": {"Dout": "q"}}]}
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 c, e = parse(json.dumps(d)); back, notes = parse_circ(to_circ(c)); m = next(x for x in back.components if x.type_name == "RAM")
 ok = m.attrs["addr"] == 4 and m.attrs["asyncread"] and m.attrs["readbehav"] == "beforewrite" and len(m.ins) == 5 and len(m.outs) == 1
 print(("ok  " if ok else "FAIL"), "export/import", m.attrs, m.ins, notes); bad += not ok

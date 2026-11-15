@@ -2,7 +2,7 @@
 import sys, os, json, subprocess, tempfile, re, math, cmath
 sys.path.insert(0, os.path.dirname(__file__)); sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from ngtest import mk, to_spice
-from vibesimulation.analog import ac, transient as T
+from vibesimulation.workspaces.multisim.engine import ac, transient as T
 def run(nl, ctl):
     lines = [l for l in to_spice(nl).splitlines() if not l.strip().lower().startswith((".end", ".op", ".dc", ".ac", ".tran"))]
     f = tempfile.NamedTemporaryFile("w", suffix=".cir", delete=False); f.write("\n".join(lines) + "\n.control\n" + ctl + "\n.endc\n.end\n"); f.close()

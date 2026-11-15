@@ -3,8 +3,8 @@ import sys, os, time, json, cProfile, pstats
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.core.document import Document
-from vibesimulation.vlsi.document import VlsiDocument
-from vibesimulation.vlsi import simulation
+from vibesimulation.workspaces.verilog.project.document import VlsiDocument
+from vibesimulation.workspaces.verilog.project import simulation
 
 def timeit(name, fn):
     t = time.time(); r = fn(); dt = time.time() - t; print(f"{name:55s} {dt:7.2f} s"); return r, dt

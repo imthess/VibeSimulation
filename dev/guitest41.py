@@ -17,7 +17,7 @@ def chk(n, c):
 def pump(n=4):
     for _ in range(n): root.update(); time.sleep(0.02)
 w.ctx.toaster.show = lambda *a, **k: None
-chk("version is 1.3.0", __version__ == "1.3.0")
+chk("version is 1.4.0", __version__ == "1.4.0")
 # ---- About
 w.show_about(); pump()
 from vibesimulation.ui.product.about import AboutBox

@@ -38,13 +38,13 @@ class Tile(Focusable):
 
     def draw(self):
         try:
-            self.delete("all"); c = self.ctx; P = c.P; self.configure(bg=self.master.cget("bg"))
+            self.delete("all"); c = self.ctx; P = c.P; self.configure(bg=P["card"])
             w, h = self.W, int(self["height"]) - 8; y = 4; x = 4
-            for dy, t in ((4, 0.35), (3, 0.55), (2, 0.8)): rrect(self, x, y + dy, x + w, y + h + dy, c.r_card, fill=mix(P["bg"], P["shadow"], t), outline="")      # soft shadow
-            rrect(self, x, y, x + w, y + h, c.r_card, fill=P["card"] if not self.hover else mix(P["card"], P["bg"], 0.35), outline=P["accent"] if (self.focused and c.kbd) else "", width=2)
+            rrect(self, x, y + 2, x + w, y + h + 2, c.r_card, fill=mix(P["card"], P["shadow"], 0.25), outline="")      # soft edge under the tile
+            rrect(self, x, y, x + w, y + h, c.r_card, fill=P["soft_h"] if self.hover else P["soft"], outline=P["accent"] if (self.focused and c.kbd) else "", width=2)
             cy = y + c.dp(24) + 36
-            self.create_oval(x + w / 2 - 36, cy - 36, x + w / 2 + 36, cy + 36, fill=P["soft"], outline="")
-            self.create_text(x + w / 2, cy, text=self.glyph, font=c.f_glyph, fill=P["text"])
+            rrect(self, x + w / 2 - 36, cy - 36, x + w / 2 + 36, cy + 36, 999, fill=P["accent"]); gl_fg = P["accent_fg"]
+            self.create_text(x + w / 2, cy, text=self.glyph, font=c.f_glyph, fill=gl_fg)
             ty = cy + 36 + c.dp(14)
             self.create_text(x + w / 2, ty, text=self.name, font=c.f_title, fill=P["text"], anchor="n")
             self.create_text(x + w / 2, ty + c.f_title.metrics("linespace") + 6, text=self.text, font=c.f_small, fill=P["muted"], anchor="n", justify="center", width=w - 36)
@@ -55,23 +55,24 @@ class Tile(Focusable):
 class HomePage(tk.Frame):
     def __init__(self, ctx, master, shell):
         super().__init__(master, bd=0); self.ctx, self.shell = ctx, shell
-        self.box = tk.Frame(self, bd=0); self.box.place(relx=0.5, rely=0.5, anchor="center")
-        self.title = tk.Label(self.box, text="What do you want to work on?", font=ctx.f_big); self.title.pack(pady=(0, 4))
-        self.sub = tk.Label(self.box, text="Turn a picture of a circuit into an editable, simulatable circuit.", font=ctx.f_body); self.sub.pack(pady=(0, 22))
-        self.row = tk.Frame(self.box, bd=0); self.row.pack()
+        self.box = tk.Frame(self, bd=0); self.box.place(relx=0.5, rely=0.5, anchor="center"); self.inner = tk.Frame(self.box, bd=0); self.inner.pack(padx=34, pady=28); ctx.glass.attach(self.box, ctx.r_card + 10, "panel", (3, 3, 3, 8))
+        self.title = tk.Label(self.inner, text="What do you want to work on?", font=ctx.f_big); self.title.pack(pady=(0, 4))
+        self.sub = tk.Label(self.inner, text="Turn a picture of a circuit into an editable, simulatable circuit.", font=ctx.f_body); self.sub.pack(pady=(0, 22))
+        self.row = tk.Frame(self.inner, bd=0); self.row.pack()
         self.tiles = []
         for key, glyph, name, text, k in TILES:
             t = Tile(ctx, self.row, glyph, name, text, k, lambda key=key: shell.show(key)); self.tiles.append(t)
         self._cols = 0; self.bind("<Configure>", lambda e: self._arrange())
         for i, t in enumerate(self.tiles):
             t.bind("<Left>", lambda e, i=i: (self.tiles[max(0, i - 1)].focus_set(), "break")[1]); t.bind("<Right>", lambda e, i=i: (self.tiles[min(len(self.tiles) - 1, i + 1)].focus_set(), "break")[1])
-        self.rec_title = tk.Label(self.box, text="Recent files", font=ctx.f_bold, anchor="w"); self.rec = tk.Frame(self.box, bd=0)
-        self.hint = tk.Label(self.box, text="Tip:  press  Ctrl+K  to search every command  ·  F1 shows all keyboard shortcuts", font=ctx.f_small); self.hint.pack(pady=(20, 0))
+        self.rec_title = tk.Label(self.inner, text="Recent files", font=ctx.f_bold, anchor="w"); self.rec = tk.Frame(self.inner, bd=0)
+        self.hint = tk.Label(self.inner, text="Tip:  press  Ctrl+K  to search every command  ·  F1 shows all keyboard shortcuts", font=ctx.f_small); self.hint.pack(pady=(20, 0))
         ctx.themed.append(self._paint); self._paint(); self.bind("<Map>", lambda e: self.recent())
 
     def _arrange(self):
         """All tiles in one row when the page is wide enough, else two rows."""
-        cols = len(self.tiles) if self.winfo_width() >= len(self.tiles) * (Tile.W + 24) + 40 else 2
+        n, w = len(self.tiles), self.winfo_width()
+        cols = n if w >= n * (Tile.W + 24) + 160 else 3 if w >= 3 * (Tile.W + 24) + 60 else 2
         if cols == self._cols: return
         self._cols = cols
         for i, t in enumerate(self.tiles): t.grid(row=i // cols, column=i % cols, padx=8, pady=6)
@@ -91,5 +92,6 @@ class HomePage(tk.Frame):
 
     def _paint(self):
         P = self.ctx.P
-        for w in (self, self.box, self.row, self.rec): w.configure(bg=P["bg"])
-        self.title.configure(bg=P["bg"], fg=P["text"]); self.sub.configure(bg=P["bg"], fg=P["muted"]); self.rec_title.configure(bg=P["bg"], fg=P["muted"]); self.hint.configure(bg=P["bg"], fg=P["muted"])
+        for w in (self, self.box, self.inner, self.row, self.rec): w.configure(bg=P["card"])
+        self.title.configure(bg=P["card"], fg=P["text"]); self.sub.configure(bg=P["card"], fg=P["muted"]); self.rec_title.configure(bg=P["card"], fg=P["muted"]); self.hint.configure(bg=P["card"], fg=P["muted"])
+        self.ctx.glass.attach(self.box, self.ctx.r_card + 10, "panel", (3, 3, 3, 8))

@@ -11,22 +11,22 @@ from . import menus
 class MenuBar(tk.Frame):
     def __init__(self, ctx, master, shell):
         super().__init__(master, bd=0); self.ctx, self.shell = ctx, shell
-        self.logo = tk.Label(self, text="◈", font=ctx.f_icon); self.logo.pack(side="left", padx=(14, 8), pady=4)
+        self.logo = tk.Label(self, text="◈", font=ctx.f_icon); self.logo.pack(side="left", padx=(18, 8), pady=7)
         self.row = tk.Frame(self, bd=0); self.row.pack(side="left")
-        self.theme = tk.Label(self, text="◐", font=ctx.f_icon, cursor="hand2", padx=10); self.theme.pack(side="right", padx=(0, 6))
+        self.theme = tk.Label(self, text="◐", font=ctx.f_icon, cursor="hand2", padx=10); self.theme.pack(side="right", padx=(0, 14), pady=4)
         self.theme.bind("<Button-1>", lambda e: shell.toggle_dark())
         self.pill = tk.Label(self, text="", font=ctx.f_small, cursor="hand2", padx=12, pady=3, anchor="center", width=38)
         self.pill.place(relx=1.0, x=-52, rely=0.5, anchor="e"); self.pill.bind("<Button-1>", lambda e: shell.open_palette())
         self.buttons, self.page, self.title = [], "home", "Home"
         self.line = tk.Frame(master, height=1, bd=0)
-        ctx.themed.append(self._paint); self.rebuild(); self._paint()
+        ctx.glass.attach(self, 26, "pill", (0, 0, 0, 0)); ctx.themed.append(self._paint); self.rebuild(); self._paint()
 
     # ---- the labels
     def rebuild(self):
         for b in self.buttons: b.destroy()
         self.buttons = []
         for name, builder in menus.menus_for(self.shell, self.page):
-            b = tk.Label(self.row, text=name, font=self.ctx.f_body, padx=10, pady=5, cursor="arrow"); b.name = name; b.builder = builder
+            b = tk.Label(self.row, text=name, font=self.ctx.f_body, padx=12, pady=6, cursor="arrow"); b.name = name; b.builder = builder
             b.bind("<ButtonRelease-1>", lambda e, b=b: self.popup(b)); b.bind("<Enter>", lambda e, b=b: self._hot(b, True)); b.bind("<Leave>", lambda e, b=b: self._hot(b, False))
             b.bind("<Return>", lambda e, b=b: self.popup(b)); b.bind("<Down>", lambda e, b=b: self.popup(b)); b.bind("<Right>", lambda e, b=b: self.hop(b, 1)); b.bind("<Left>", lambda e, b=b: self.hop(b, -1))
             b.configure(takefocus=1); b.pack(side="left"); self.buttons.append(b)

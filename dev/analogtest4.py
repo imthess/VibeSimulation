@@ -1,8 +1,8 @@
 """Real diode models and the potentiometer: DC, AC, transient, SPICE text, JSON round trip."""
 import sys, os, json, math
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-from vibesimulation.analog.netlist import parse, to_spice, dumps
-from vibesimulation.analog import transient as TR, ac as AC
+from vibesimulation.workspaces.multisim.engine.netlist import parse, to_spice, dumps
+from vibesimulation.workspaces.multisim.engine import transient as TR, ac as AC
 bad = 0
 def ok(c, m):
     global bad

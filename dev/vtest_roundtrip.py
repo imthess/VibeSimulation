@@ -4,9 +4,9 @@ sys.path.insert(0, "src")
 import vibesimulation.components
 from vibesimulation.components.registry import ComponentRegistry as R
 from vibesimulation.core.model import Circuit, IOPin
-from vibesimulation.verilog.elab import elaborate
-from vibesimulation.verilog.emit import Writer, equivalent, circuit_to_verilog
-from vibesimulation.verilog.lexer import VError
+from vibesimulation.workspaces.verilog.engine.elab import elaborate
+from vibesimulation.workspaces.verilog.engine.emit import Writer, equivalent, circuit_to_verilog
+from vibesimulation.workspaces.verilog.engine.lexer import VError
 
 VARIANTS = {
     "AND": [{}, {"inputs": 3, "width": 4}, {"width": 8}], "OR": [{}, {"inputs": 4}, {"width": 3}], "NAND": [{}, {"width": 4}, {"inputs": 3}], "NOR": [{}, {"inputs": 3, "width": 2}],

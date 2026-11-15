@@ -32,9 +32,9 @@ for _ in range(50):
 ok(got and got[0][0] is True, "async check calls back")
 # recovery with a fake shell
 from vibesimulation.core.document import Document
-from vibesimulation.analog.document import AnalogDocument
-from vibesimulation.vlsi.document import VlsiDocument
-from vibesimulation.systemverilog.document import SvDocument
+from vibesimulation.workspaces.multisim.engine.document import AnalogDocument
+from vibesimulation.workspaces.verilog.project.document import VlsiDocument
+from vibesimulation.workspaces.systemverilog.engine.document import SvDocument
 class Sh: pass
 sh = Sh(); sh.doc, sh.adoc, sh.vdoc, sh.sdoc = Document(), AnalogDocument(), VlsiDocument(), SvDocument(); sh.doc.load_sample(); sh.adoc.load_sample(); sh.vdoc.load_sample()
 p = os.path.join(tempfile.mkdtemp(), "rec.json"); r = Recovery(p); r.start(sh)

@@ -1,8 +1,8 @@
 import sys, math, cmath
 import os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse
-from vibesimulation.analog import ac
+from vibesimulation.workspaces.multisim.engine.netlist import parse
+from vibesimulation.workspaces.multisim.engine import ac
 def mk(parts):
     nl,e=parse('{"components":%s}'%parts); assert not e,e; return nl
 # RC low-pass
@@ -18,7 +18,7 @@ nl=mk('[{"id":"V1","type":"VoltageSource","value":"0","ac":"1","nodes":["in","0"
 sw=ac.sweep(nl,100,5000,400); m=ac.metrics(sw["f"],sw["V"]["out"]); f0=1/(2*math.pi*math.sqrt(10e-3*1e-6)); Q=math.sqrt(10e-3/1e-6)/10
 print(m, f0, Q); assert abs(m["f0"]-f0)/f0<0.01 and abs(m["q"]-Q)/Q<0.03
 pt=ac.point(ac.prepare(nl),f0); print(ac.power_summary(ac.prepare(nl),pt)) # P=0.05, pf=1
-from vibesimulation.analog import transient as T
+from vibesimulation.workspaces.multisim.engine import transient as T
 # RC step: V source 0 -> value step? use DC 5 with cap initial from op => steady. Use square wave source instead.
 nl=mk('[{"id":"V1","type":"VoltageSource","value":"0","ac":"1","freq":"100","wave":"square","nodes":["in","0"]},{"id":"R1","type":"Resistor","value":"1k","nodes":["in","out"]},{"id":"C1","type":"Capacitor","value":"1u","nodes":["out","0"]}]')
 r=T.run(nl,0.004,4000)
@@ -39,7 +39,7 @@ r=T.run(nl,0.04,4000); st=T.stats(r["t"],r["V"]["out"]); print(st); assert 4.2<s
 # energy: inductor current ramp  V=1 -> L=1 -> i=t  (DC op: L is a short so use step via square? skip)
 print("TRAN OK")
 from vibesimulation.export.pdf import make_analog_pdf
-from vibesimulation.analog.layout import SchematicBuilder
+from vibesimulation.workspaces.multisim.engine.layout import SchematicBuilder
 nl=mk('[{"id":"V1","type":"VoltageSource","value":"0","ac":"1","freq":"1k","nodes":["in","0"]},{"id":"R1","type":"Resistor","value":"1k","nodes":["in","out"]},{"id":"C1","type":"Capacitor","value":"1u","nodes":["out","0"]}]')
 prep=ac.prepare(nl); pt=ac.point(prep,1000); v,res=nl.solve()
 d=make_analog_pdf(nl,SchematicBuilder().build(nl),v,res,phasors=(pt,ac.power_summary(prep,pt))); assert d[:4]==b"%PDF"; print("PDF OK",len(d))

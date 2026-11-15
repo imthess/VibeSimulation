@@ -20,6 +20,6 @@ from vibesimulation.core import commands as C
 v.run(C.RotatePart("f", 2)); print("rotated FF", d.valid, d.layout_error); root.update(); os.system("import -display :97 -window root /tmp/pv/seq3.png")
 # pdf + circ
 from vibesimulation.export.pdf import make_pdf
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 print(len(make_pdf(d.layout, d.circuit, d.invals, None, values=d.values())), len(to_circ(d.circuit)))
 ctx.cfg.clear(); ctx.save_cfg(); print("OK")

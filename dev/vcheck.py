@@ -2,7 +2,7 @@
 import random, subprocess, sys, tempfile
 sys.path.insert(0, "src")
 import vibesimulation.components
-from vibesimulation.verilog.elab import elaborate
+from vibesimulation.workspaces.verilog.engine.elab import elaborate
 from vibesimulation.core import sim, project
 
 

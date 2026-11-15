@@ -2,7 +2,7 @@
 import sys
 sys.path.insert(0, "dev"); sys.path.insert(0, "src")
 from vcheck import compare
-from vibesimulation.systemverilog.compiler import lower
+from vibesimulation.workspaces.systemverilog.engine.compiler import lower
 
 
 def check(sv, top, nvec=80, seed=1, **kw):

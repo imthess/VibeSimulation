@@ -47,9 +47,31 @@ def corner(cv, r, color, quad):
     return img
 
 
+try:
+    from PIL import Image, ImageDraw, ImageTk
+except Exception:
+    Image = None
+
+
+def _aa(cv, w, h, r, fill, outline, width):
+    """Anti-aliased rounded rectangle (fill and / or outline) drawn 4x larger by Pillow and scaled down; cached."""
+    key = ("aa", id(cv.tk), w, h, r, fill, outline, width); img = _IMG.get(key)
+    if img is not None: return img
+    if len(_IMG) > 900: _IMG.clear()
+    def col(c): R, G, B = (v >> 8 for v in cv.winfo_rgb(c)); return (R, G, B, 255)
+    S = 4; im = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0))
+    ImageDraw.Draw(im).rounded_rectangle([0, 0, w * S - 1, h * S - 1], radius=r * S, fill=col(fill) if fill else None, outline=col(outline) if outline else None, width=max(1, int(width * S)))
+    img = ImageTk.PhotoImage(im.resize((w, h), Image.LANCZOS), master=cv); _IMG[key] = img
+    return img
+
+
 def rrect(cv, x1, y1, x2, y2, r, fill="", outline="", width=1, tags=(), **kw):
     """Rounded rectangle. A filled shape without outline is drawn with anti-aliased corners (smooth at any radius);
     shapes with an outline fall back to a polygon."""
+    if Image is not None and not kw and (fill or outline):
+        X1, Y1, X2, Y2 = (int(round(v)) for v in (x1, y1, x2, y2)); w, h = X2 - X1, Y2 - Y1
+        if 2 <= w and 2 <= h and w * h <= 120000 and r >= 2:
+            return cv.create_image(X1, Y1, image=_aa(cv, w, h, int(min(r, w // 2, h // 2)), fill, outline, width), anchor="nw", tags=tags)
     if fill and not outline and r >= 3 and not kw:
         x1, y1, x2, y2 = (int(round(v)) for v in (x1, y1, x2, y2)); r = int(min(r, (x2 - x1) // 2, (y2 - y1) // 2))
         if r >= 3:

@@ -4,8 +4,8 @@ sys.path.insert(0, "src"); sys.path.insert(0, "dev")
 from vibesimulation.components import load_all
 load_all()
 from vibesimulation.core.serializer import parse
-from vibesimulation.export.logisim import HEADER, FOOTER
-from vibesimulation.imports.logisim_in import circ_to_json
+from vibesimulation.workspaces.logisim.circ_file.logisim import HEADER, FOOTER
+from vibesimulation.workspaces.logisim.circ_file.logisim_in import circ_to_json
 from semtest import val
 
 def pin(x, y, label, out=False, width=1):
@@ -37,7 +37,7 @@ for name, kind in (("AND Gate", "AND"), ("NOR Gate", "NOR"), ("XOR Gate", "XOR")
     for facing in ("east", "west", "north", "south"):
         for size in (30, 50, 70):
             n = 3
-            from vibesimulation.imports.logisim_in import gate_inputs
+            from vibesimulation.workspaces.logisim.circ_file.logisim_in import gate_inputs
             ps = gate_inputs(name, {"facing": facing, "size": size, "inputs": n})
             gx, gy = 600, 600
             body = comp(1, gx, gy, name, facing=facing, size=size, inputs=n, **({"xor": "odd"} if "XOR" in name else {}))

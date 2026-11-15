@@ -29,14 +29,14 @@ class Rail(tk.Canvas):
     # ---- settings
     def opt(self):
         c = self.ctx.cfg; size = c.get("rail_size", "Small"); w, b, fs = SIZES.get(size, SIZES["Small"])
-        return dict(w=w, b=b, fs=fs, style="Docked", color="Accent", side=c.get("rail_side", "Left"))     # one flat bar in the accent colour
+        return dict(w=w, b=b, fs=fs, style="Floating", color="Dark", side=c.get("rail_side", "Left"))     # a floating glass capsule
 
     def colors(self, color):
         P = self.ctx.P
         if color == "Accent": return dict(bg=P["accent"], sel=mix(P["accent"], "#000000", .22), hot=mix(P["accent"], "#000000", .12), fg=mix(P["accent"], "#ffffff", .72), on="#ffffff")
         if color == "Light": return dict(bg=P["card"], sel=P["soft_h"], hot=P["soft"], fg=P["muted"], on=P["text"])
         if color == "Soft": return dict(bg=P["soft_h"], sel=P["card"], hot=mix(P["soft_h"], P["card"], .5), fg=P["muted"], on=P["accent"])
-        return dict(bg=P["rail"], sel=P["rail_sel"], hot=mix(P["rail"], P["rail_sel"], .55), fg=P["rail_fg"], on=P["rail_on"])
+        return dict(bg=P["rail"], sel=P["rail_sel"], hot=mix(P["rail"], "#ffffff", .14), fg=P["rail_fg"], on=P["rail_on"], selfg="#1b1d24")
 
     def set(self, name): self.cur = name; self.idx = self.keys.index(name) if name in self.keys else 0; self.draw()
 
@@ -82,6 +82,16 @@ class Rail(tk.Canvas):
         if k == "settings": b = self.boxes()[k]; self.sh.manage_menu(self.winfo_rootx() + b[2] + 4, self.winfo_rooty() + b[1])
         elif k: self.sh.activity(k)
 
+    def _glass(self, cw, h, rad):
+        """Dark frosted capsule with a lit rim, on the window backdrop."""
+        g = self.ctx.glass; key = (g._origin(self), cw, h, rad, self.ctx.dark, g.gen)
+        if key != getattr(self, "_gkey", None) or getattr(self, "_gimg", None) is None:
+            im = g.compose(self, rad, "dark", pad=(PAD, PAD, PAD, PAD), width=cw, height=h)
+            if im is None: return
+            from PIL import ImageTk
+            self._gimg = ImageTk.PhotoImage(im, master=self); self._gkey = key
+        self.create_image(0, 0, image=self._gimg, anchor="nw")
+
     def draw(self):
         try:
             self.delete("all"); P = self.ctx.P; o = self.opt(); h = self.winfo_height(); cw = o["w"] + (2 * PAD if o["style"] == "Floating" else 0)
@@ -89,7 +99,10 @@ class Rail(tk.Canvas):
             self.configure(bg=P["bg"]); bx = self.boxes(); C = self.colors(o["color"]); B = o["b"]
             self.font.configure(size=o["fs"], family=self.ctx.f_body.actual("family"))
             rad = max(4, min(self.ctx.r_card, o["w"] // 2)); br = max(4, min(B // 2, round(self.ctx.r_card * .7)))
-            if o["style"] == "Floating":
+            g = self.ctx.glass
+            if o["style"] == "Floating" and g.enabled():
+                self._glass(cw, h, max(14, o["w"] // 2)); top = PAD + 14 + B // 4
+            elif o["style"] == "Floating":
                 for d, t in ((2, .5), (1, .75)):                    # soft shadow
                     rrect(self, PAD, PAD + d, PAD + o["w"], h - PAD + d, rad, fill=mix(P["bg"], P["shadow"], t * .6), outline="")
                 rrect(self, PAD, PAD, PAD + o["w"], h - PAD, rad, fill=C["bg"], outline="")
@@ -107,5 +120,5 @@ class Rail(tk.Canvas):
                 if on: pass
                 elif k == self.hot: rrect(self, a, b, c, d, br, fill=C["hot"], outline="")
                 if self.focus_get() is self and self.ctx.kbd and self.keys[self.idx] == k: rrect(self, a + 1, b + 1, c - 1, d - 1, br, fill="", outline=C["fg"], width=2)
-                self.create_text((a + c) / 2, (b + d) / 2, text=g, fill=C["on"] if (on or k == self.hot) else C["fg"], font=self.font)
+                self.create_text((a + c) / 2, (b + d) / 2, text=g, fill=(C.get("selfg", C["on"]) if on else C["on"] if k == self.hot else C["fg"]), font=self.font)
         except tk.TclError: pass

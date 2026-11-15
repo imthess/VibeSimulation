@@ -4,8 +4,8 @@ sys.path.insert(0, "src"); sys.path.insert(0, "dev")
 from vibesimulation.components import load_all
 load_all()
 from vibesimulation.core.serializer import parse
-from vibesimulation.export.logisim import to_circ
-from vibesimulation.imports.logisim_in import circ_to_json
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim_in import circ_to_json
 from randtest import rand_circuit
 
 def table(c):

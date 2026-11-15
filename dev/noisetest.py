@@ -2,8 +2,8 @@
 import sys, os, json, math
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse
-from vibesimulation.analog import noise as N, thermal
+from vibesimulation.workspaces.multisim.engine.netlist import parse
+from vibesimulation.workspaces.multisim.engine import noise as N, thermal
 bad = 0
 def ok(c, m):
     global bad

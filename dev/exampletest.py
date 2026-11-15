@@ -4,10 +4,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.product.examples import EXAMPLES, for_section
 from vibesimulation.core.document import Document
-from vibesimulation.analog.document import AnalogDocument
-from vibesimulation.vlsi.document import VlsiDocument
-from vibesimulation.systemverilog.document import SvDocument
-from vibesimulation.vlsi import simulation
+from vibesimulation.workspaces.multisim.engine.document import AnalogDocument
+from vibesimulation.workspaces.verilog.project.document import VlsiDocument
+from vibesimulation.workspaces.systemverilog.engine.document import SvDocument
+from vibesimulation.workspaces.verilog.project import simulation
 bad = 0
 def ok(c, m):
     global bad

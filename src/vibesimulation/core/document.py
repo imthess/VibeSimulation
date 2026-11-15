@@ -50,8 +50,6 @@ class Document(Subject):
             circuit = Circuit()
         else:
             circuit, errs = parse(text)
-            if circuit is not None and not errs:
-                errs = circuit.validate(loose=True)
         if circuit is not None and not errs:
             legacy = LS.extract(circuit)                       # old files: "pos"/"wires" written inside the JSON
             base = state if state is not None else self.state
@@ -59,6 +57,7 @@ class Document(Subject):
                 base = LS.merge(base, legacy)
                 text = dumps(circuit)                          # ...and removed from the visible text
             LS.apply(circuit, base)
+            errs = circuit.validate(loose=True)                # (after the layout state: it knows which output pins are still unconnected)
         self.text = text
         self.circuits[self.cur] = {"text": text, "state": self.state}
         self._publish()
@@ -166,7 +165,7 @@ class Document(Subject):
 
     def circ_text(self):
         """The whole project as a Logisim .circ file (raises ValueError naming the circuit that is not valid)."""
-        from ..export.logisim import project_to_circ, to_circ
+        from ..workspaces.logisim.circ_file.logisim import project_to_circ, to_circ
         if len(self.circuits) == 1: return to_circ(self.circuit)
         self.circuits[self.cur] = {"text": self.text, "state": self.state}
         out = {}

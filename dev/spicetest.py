@@ -1,7 +1,7 @@
 import sys; import os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.imports.spice_in import spice_to_json
-from vibesimulation.analog.netlist import parse, to_spice
+from vibesimulation.workspaces.multisim.spice_file.spice_in import spice_to_json
+from vibesimulation.workspaces.multisim.engine.netlist import parse, to_spice
 T="""test
 V1 1 0 DC 10
 R1 1 2 1k
@@ -24,6 +24,6 @@ assert abs(v["2"]-5.14)<0.05 and abs(v["3"]-2*v["2"])<1e-6 and abs(v["4"]+v["2"]
 assert type(nl.part("D1")).__name__=="Zener" and nl.part("D1").extra["vz"]=="5.1"
 nl2,e=parse(to_spice and j); 
 from vibesimulation.export.pdf import make_analog_pdf
-from vibesimulation.analog.layout import SchematicBuilder
+from vibesimulation.workspaces.multisim.engine.layout import SchematicBuilder
 d=make_analog_pdf(nl,SchematicBuilder().build(nl),v,nl.solve()[1]); print("pdf bytes",len(d)); assert d[:4]==b"%PDF"
 print("SPICE OK")

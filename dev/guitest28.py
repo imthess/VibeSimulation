@@ -4,8 +4,8 @@ import tkinter as tk
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.core import commands as C
 from vibesimulation.ui.main_window import MainWindow
-from vibesimulation.ui.logisim.memory_editor import to_text, from_text, MemoryEditor
-from vibesimulation.ui.logisim.parts_palette import PropsDialog
+from vibesimulation.workspaces.logisim.circuit.memory_editor import to_text, from_text, MemoryEditor
+from vibesimulation.workspaces.logisim.circuit.parts_palette import PropsDialog
 root = tk.Tk(); root.geometry("1280x800"); w = MainWindow(root); ctx = w.ctx
 d = w.doc; ctx.say = lambda t, m, *a, **k: print("SAY", t, m)
 d.load_text(""); w.show("logisim"); root.update(); v = w.pages["logisim"].views["circuit"]

@@ -4,6 +4,8 @@ from importlib import import_module
 ORDER = ['theme',
          'accent_colour',
          'corner_style',
+         'glass_look',
+         'background',
          'density',
          'text_size',
          'font',
@@ -22,8 +24,8 @@ ORDER = ['theme',
          'play_speed',
          'grid',
          'digits',
-         'ai_import']
+         'vibesimulation.workspaces.ai_import.settings.ai_import']      # a name with dots is a full module path (this setting lives with its workspace)
 
 
 def all_items(page):
-    return [import_module(f".{n}", __name__).item(page) for n in ORDER]
+    return [import_module(n if n.startswith("vibesimulation.") else f".{n}", __name__).item(page) for n in ORDER]

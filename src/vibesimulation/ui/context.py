@@ -23,6 +23,8 @@ class UiContext(Theme):
             except Exception:
                 pass
         super().__init__(root, self.cfg)
+        from .glass import Glass
+        self.glass = Glass(self)
         self.toaster = Toast(self); self.popup = None; self.popup_closed = None
 
     def save_cfg(self):

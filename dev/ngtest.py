@@ -2,7 +2,7 @@
 import sys, os, json, subprocess, tempfile, re
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse, to_spice
+from vibesimulation.workspaces.multisim.engine.netlist import parse, to_spice
 def mk(c):
     nl, e = parse(json.dumps({"components": c})); assert not e, e; return nl
 def ng_op(nl):

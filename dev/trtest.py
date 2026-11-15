@@ -2,8 +2,8 @@
 import sys, os, json, math, random, cmath
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse
-from vibesimulation.analog import components as C, ac, transient as T
+from vibesimulation.workspaces.multisim.engine.netlist import parse
+from vibesimulation.workspaces.multisim.engine import components as C, ac, transient as T
 bad = 0
 def chk(n, c, extra=""):
     global bad; print("ok  " if c else "FAIL", n, extra if not c else ""); bad += (not c)

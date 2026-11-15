@@ -3,7 +3,7 @@ import random, sys, time
 sys.path.insert(0, "src"); sys.path.insert(0, "dev")
 from vibesimulation.core.model import Circuit, IOPin
 from vibesimulation.components import ComponentRegistry as R
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 from semtest import logisim, val
 
 POOL = [("AND", {"inputs": 2}), ("OR", {"inputs": 3}), ("XOR", {"inputs": 2}), ("NOT", {}), ("NAND", {"inputs": 2}), ("NOR", {"inputs": 2}), ("XNOR", {"inputs": 2}),

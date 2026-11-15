@@ -2,8 +2,8 @@
 import random, subprocess, sys, os, tempfile
 sys.path.insert(0, "src")
 import vibesimulation.components
-from vibesimulation.verilog.elab import elaborate
-from vibesimulation.verilog.lexer import VError
+from vibesimulation.workspaces.verilog.engine.elab import elaborate
+from vibesimulation.workspaces.verilog.engine.lexer import VError
 from vibesimulation.core import sim
 
 REASONS = {}

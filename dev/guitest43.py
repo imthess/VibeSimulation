@@ -42,7 +42,7 @@ for e in for_section("systemverilog"):
 # keyboard
 w.show("home"); pump(); root.event_generate("<Control-Key-6>"); pump(); chk("Ctrl+6 opens the page", w.current == "systemverilog")
 # actions and menus
-m = tk.Menu(root); from vibesimulation.ui.vlsi import menus as VM
+m = tk.Menu(root); from vibesimulation.workspaces.verilog import menus as VM
 VM.file_menu(w, m); labels = [m.entrycget(i, "label") for i in range(m.index("end") + 1) if m.type(i) in ("command", "cascade")]
 chk("File menu speaks of SystemVerilog", any("SystemVerilog file (.sv)" in l for l in labels))
 out = tempfile.mkdtemp() + "/x.sv"; w.sactions._save = lambda title, ext, name, text: (open(out, "w").write(text), out)[1]

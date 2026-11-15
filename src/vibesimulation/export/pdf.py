@@ -174,8 +174,8 @@ def _head(pg, W, H, name, sub):
 def make_analog_pdf(netlist, layout, volts, results, digits=4, name="VibeSimulation", phasors=None):
     """Multisim report: page 1 the schematic, then the DC results (node voltages, every part's voltage / current / power)
     and the parts list (type, value, the two nets it joins)."""
-    from ..analog.painter import paint_schematic
-    from ..analog.units import fmt_si
+    from ..workspaces.multisim.engine.painter import paint_schematic
+    from ..workspaces.multisim.engine.units import fmt_si
     W, H = 842, 595
     ACC, INK, MUT = PALETTE[ACCENT], PALETTE[OUTLINE], PALETTE[MUTED]
     pages = []

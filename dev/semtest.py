@@ -3,7 +3,7 @@ import subprocess, sys, itertools, json
 sys.path.insert(0, "src")
 from vibesimulation.core.model import Circuit, IOPin
 from vibesimulation.components import ComponentRegistry as R
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 
 def build(t, attrs, skip=()):
     c = R.lookup(t)("c1", attrs)

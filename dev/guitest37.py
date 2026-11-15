@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 import tkinter as tk
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.ui.main_window import MainWindow
-from vibesimulation.analog import components as AC
+from vibesimulation.workspaces.multisim.engine import components as AC
 root = tk.Tk(); root.geometry("1400x900"); w = MainWindow(root); ctx = w.ctx; ok = True
 ctx.cfg.clear()
 def chk(n, c):
@@ -50,7 +50,7 @@ groups = [cb.t.item(i, "text").strip() for i in cb.t.get_children("")]
 chk("component database groups", groups == ["Sources", "Basic", "Diodes", "Transistors", "Analog", "Indicators"])
 n0 = len(w.adoc.netlist.parts); sv.place(AC.NPN); pump(); chk("place NPN from the bin code path", len(w.adoc.netlist.parts) == n0 + 1)
 for g in sv.group_btns:
-    m = ctx.menu(); from vibesimulation.ui.multisim.parts_bin import fill_group_menu; fill_group_menu(m, ctx, g, sv.place)
+    m = ctx.menu(); from vibesimulation.workspaces.multisim.schematic.parts_bin import fill_group_menu; fill_group_menu(m, ctx, g, sv.place)
 w.adoc.undo(); pump()
 # 5. side bar toggle and activity bar
 open0 = w.side.winfo_ismapped(); w.toggle_side(); pump(); chk("Ctrl+B / toggle hides the side bar", open0 and not w.side.winfo_ismapped())

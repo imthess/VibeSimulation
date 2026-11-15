@@ -21,127 +21,52 @@ Turn a photo or screenshot of a digital circuit into an editable circuit, with a
 ## VLSI section (Verilog)
 A separate page on the activity bar (hexagon icon, Ctrl+5) with three panes: **1 Verilog, 2 Circuit, 3 Truth table**. It has its own document and its own list of circuits, so nothing is shared with Logisim: Logisim keeps only Circuit, JSON and Truth table.
 
-| Where | File | What it does |
+| Where (under `workspaces/verilog/`) | File | What it does |
 |---|---|---|
-| `ui/vlsi/` | `workspace.py` | the page, three swappable/hideable panes plus the bottom dock |
-| | `dock.py`, `problems_tab.py`, `output_tab.py`, `waveform_tab.py` | bottom panel: Problems, Output, Waveform, Run |
-| | `verilog_box.py`, `highlight.py` | pane 1: the editor (compiles after a pause, red error lines, syntax colours) |
-| | `circuit_box.py` | pane 2: the circuit drawn from the Verilog; logic edits are refused (edit the Verilog), moving parts is allowed |
-| | `truth_table_box.py` | pane 3 |
+| `.` | `workspace.py`, `actions.py`, `menus.py` | the page (three swappable/hideable panes plus the bottom dock), open/save `.v`, the page's own menus |
+| `simulation/` | `dock.py`, `problems_tab.py`, `output_tab.py` | bottom panel: Problems, Output, Run |
+| | `waveform_tab.py` | Waveform: radix, cursors A / B, signal list, zoom, **Save VCD** |
+| | `sim_dialog.py` | **Simulation settings** window (top module, standard, -D, -I, timescale, limits, warnings off) and the equivalent iverilog / Verilator / xsim command lines |
+| `editor/` | `verilog_box.py`, `highlight.py` | pane 1: the editor (compiles after a pause, red error lines, syntax colours) |
 | | `side_panel.py`, `templates.py` | explorer: modules, snippet templates, `vs_` library cells (double-click to insert) |
-| | `actions.py`, `menus.py` | open/save `.v`, downloads; the page's own menus |
-| `vlsi/` | `document.py` | `VlsiDocument`: what the page edits (Facade) |
+| `circuit/` | `circuit_box.py` | pane 2: the circuit drawn from the Verilog; logic edits are refused (edit the Verilog), moving parts is allowed |
+| `truth_table/` | `truth_table_box.py` | pane 3 |
+| `project/` | `document.py` | `VlsiDocument`: what the page edits (Facade) |
 | | `compiler.py`, `snapshots.py`, `writer.py`, `samples.py` | text -> circuits; remembers the typed text; circuit -> text; starter design |
-| `verilog/` | `lexer.py`, `parser.py`, `elab.py`, `emit.py` | the language: tokens, syntax tree, tree -> circuit (IEEE 1364 width/sign rules), circuit -> text |
-| `ui/views/` | `code_view.py` | text editor base shared by the JSON and Verilog boxes |
+| | `simulation.py`, `simsettings.py`, `vcd.py` | the Run step, the settings object (and command lines), VCD writer |
+| `engine/` | `lexer.py`, `preproc.py`, `parser.py`, `elab.py`, `emit.py` | the language: tokens, `` `define `` / `` `ifdef `` / `` `include ``, syntax tree, tree -> circuit (IEEE 1364 width/sign rules), circuit -> text |
+| | `lint.py`, `lintchecks.py`, `lintcodes.py` | style checks and Verilator-style warning codes |
+| `../../ui/views/` | `code_view.py` | text editor base shared by the JSON and Verilog boxes |
+Paths are inside `src/vibesimulation/workspaces/`, apart from `ui/`. Each feature has its own file(s).
 
-**Staying coherent**
-- Verilog you typed is kept exactly as typed (comments, layout) while the circuit is still what that text produced. When the logic changes some other way (an undo, JSON-level change, a different module) the Verilog is written again from the circuit. Moving parts does not count.
-- A mistake in your Verilog changes nothing: the circuit stays, the faulty lines turn red, your text is kept until it compiles.
-- `// @name` at the end of a line names the part that statement creates; generated Verilog writes these so ids survive.
-- Several `module`s become several circuits (a module used inside another is a subcircuit). A single module renames the circuit to its name. Parameters (`#(.N(8))`) make one circuit per distinct value.
-- File > Open Verilog file / Save Verilog on this page; Export also gives `.circ`, PDF and CSV.
-
-**Supported**: ANSI and old-style ports, `parameter`/`localparam`, `wire`/`reg`/`integer`, vectors up to **64 bits**, `assign` (also with `#delay`, ignored), gate primitives, all operators (arithmetic incl. signed division/modulo, bitwise, reduction, logical, comparison, shifts, `?:`, concatenation, replication, `$signed`, `$unsigned`, `$clog2`, selects), `always @*` with `if`/`case`/`casez`/`casex`, **`for`/`while`/`repeat` loops (unrolled)**, **`generate for/if/case` with `genvar`**, **`function` and `task`** (inlined), **memories** (`reg [7:0] m [0:15]`: a case/initial-filled table becomes a ROM, one address read and written becomes a RAM, small arrays become registers plus a multiplexer), **tri-state** `assign y = en ? a : 1'bz` (several drivers are OR-merged), x/z literals (read as don't-care = 0, with a warning), clocked `always @(posedge/negedge clk [or posedge/negedge reset])` with `<=` or `=` (Register / D flip-flop with enable and asynchronous reset), module instances (named or positional), and **library cells** `vs_<PartType> #(.setting(value)) name (.Pin(signal), ...)` for every other Logisim part.
-
-**Warnings** (Problems tab, they do not stop the compile): unconnected ports, width mismatches, undriven and unused signals, x/z used as don't-care, incomplete `case` (latch risk), more than one driver.
-
-**Testbenches and waveforms**: write a module with `initial`/`always`, `#delay`, `@(posedge clk)`, `wait`, `$display/$write/$monitor/$strobe/$finish/$time/$random` in the **Test** tab of the Verilog box (or without one: a clock, a reset and random or counting inputs are generated). **Run** in the bottom panel simulates in time (`verilog/tb/`, scheduling like a real simulator: active, non-blocking, settle, wake) and fills the **Output** and **Waveform** tabs (wheel zooms, drag pans, hover reads values). Clicking a line of the design selects the part it made in the circuit and clicking a part jumps to its line.
-
-**Still not supported (clear error with the line)**: real x/z values (only don't-care = 0; bus contention is not modelled), `fork`/`join`, `$readmemh` and file I/O, real numbers, hierarchical names (`a.b.c`), non-synthesizable constructs in the design part, widths over 64 bits, latches, blocks that mix edges and levels, RAMs with different read and write addresses and more than 256 words (use `vs_RAM`), `initial` blocks that are not testbench code.
-
-**Differences to a real simulator**: Logisim parts start at 0 (Verilog starts at x); cases Verilog calls x (index out of range, divide by zero) give Logisim's value; `always @(a or b)` is read as `@*`.
-
-**Tests** (need `iverilog`): `dev/vfuzz_expr.py`, `dev/vfuzz_proc.py`, `dev/vtest_proc.py`, `dev/vtest_roundtrip.py`, `dev/vtest_adv.py` + `dev/vtest_adv_roundtrip.py` (loops, generate, functions, memories, tri-state), `dev/vtest_tb.py` (testbench output compared with iverilog), `dev/guitest39.py` + `dev/guitest40.py` (the page and the bottom panel).
-
-## SystemVerilog section (rail item "SystemVerilog", Ctrl+6)
-Write SystemVerilog, see the circuit and the truth table, simulate and run a testbench: the same boxes as the VLSI page, with their own document (the two sections never share circuits). Open and save `.sv` files; examples are in the gallery (4).
-
-**How it works:** the text is *lowered* to the Verilog subset the VLSI section already compiles, then compiled by it. The lowering keeps every token on the line it was written on, so errors, warnings and the line-to-part highlighting point at your SystemVerilog. The editor always shows what you typed (while the circuit is unchanged), not the lowered text.
-
-**Supported (each is one file in `systemverilog/features/`):**
-
-| Feature | File | Notes |
-|---|---|---|
-| `` `define `` (with arguments), `` `ifdef/`ifndef/`elsif/`else/`endif ``, `` `undef `` | `preprocess.py` | `` `include `` is refused |
-| `logic`, `bit`, `int`, `byte`, `shortint`, `longint` | `logic_types.py` | `reg` for names assigned in processes, `wire` otherwise; mixed declarations are split; `bit` is not checked as two-state |
-| `always_comb`, `always_ff`, `always_latch` | `always_blocks.py` | `<=` is allowed in `always_comb`; latches are reported like in the Verilog tab |
-| `enum`, `typedef enum` | `enums.py` | members become sized localparams; with no base type the width is the smallest that fits (real SystemVerilog uses 32 bits) |
-| `typedef struct packed` and `s.field` | `structs.py` | one vector, the first field on top; unpacked structs refused |
-| `typedef` of plain types | `typedefs.py` | no array typedefs |
-| `package`, `import p::*`, `p::name`, file-level typedef / parameter / function | `packages.py` | copied into the modules that use them |
-| `parameter int W`, `localparam logic [3:0] X` | `typed_params.py` | type dropped |
-| `for (int i = 0; ...)`, `for (genvar ...)` | `for_decl.py` | |
-| `i++`, `i--`, `x += e`, `<<=` ... as statements | `compound_ops.py` | blocking, as in SystemVerilog; not inside expressions |
-| `a inside {1, [4:7]}`, `case ... inside` | `inside_op.py` | |
-| `signed'(x)`, `unsigned'(x)`, `8'(x)`, `int'(x)`, `type'(x)` | `casts.py` | `int'` / enum casts only change what the context gives |
-| `'0`, `'1`, `'x`, `'z` | `fill_literals.py` | `'1` needs a signal of known width on the other side |
-| `function` with `return`, `function void` | `functions.py` | `return` must be the last thing the function does (or end each if/else branch) |
-| `assert (c) else $error(...)` | `assertions.py` | immediate assertions only |
-| `$error`, `$warning`, `$info`, `$fatal` | `severity_tasks.py` | printed with `$display`; `$fatal` also ends the run |
-| `.name` and `.*` in instances | `port_shorthand.py` | `.*` works for modules in this project |
-| `unique` / `priority` before `case` / `if` | `unique_priority.py` | accepted, not checked (a note appears) |
-| `end : label`, `automatic`, `static`, `var` | `end_labels.py`, `qualifiers.py` | |
-| anything else | `unsupported.py`, `leftover.py` | named in plain words with its line |
-
-**Not supported yet:** interfaces and modports, classes, `program`, clocking blocks, concurrent assertions / properties / sequences, covergroups, randomisation, `fork`/`join`, dynamic and associative arrays, queues, `string`, DPI, unpacked structs and unions, assignment patterns `'{...}`, `foreach`, `break`/`continue`, `do while`, `++` inside an expression, `parameter type`, enum methods (`.next()`), wildcard equality (`==?`).
-
-**Checked against iverilog** (`dev/svtest.py`, needs `iverilog`): about twenty designs are run as SystemVerilog by iverilog (`-g2012`) and as their lowering by this program on random inputs; every output must agree (alu, FSM with enum, counter with `++`, struct, package, typedef, casts, generate, port shorthand ...). Features iverilog does not implement (`inside`, `unique if`) are checked against hand-written Verilog; testbench runs (`assert`, `$error`, `$fatal`, tasks) are checked on their printed output. GUI test: `dev/guitest43.py`. Not compared with a commercial simulator.
-
-### Design patterns, and where they live
-| Pattern | Where |
-|---|---|
-| Facade | `systemverilog/compiler.py` (`lower`), `vlsi/document.py` (`VlsiDocument` over compiler, snapshots, writer) |
-| Pipeline / Chain of Responsibility | `systemverilog/pipeline.py`: text features, the lexer, token features, each in `order` |
-| Registry | `systemverilog/feature.py` (`@feature`, auto-discovered by `features/__init__.py`), `product/examples.py` (`add`), `components/registry.py` (`@register`) |
-| Template Method | `Feature.run` (`applies` / `apply`); the page, explorer, editor and actions of the SystemVerilog tab override class attributes of the VLSI classes; `VlsiDocument.compile` / `prepare` are the two hooks `SvDocument` fills in |
-| Adapter | `systemverilog/document.py` (`SvDocument`): puts a lowering step in front of the VLSI compile |
-| Builder | `systemverilog/editor.py` (`TokenEditor`) |
-| Memento | `vlsi/snapshots.py` (the text you typed), `core/` undo history |
-| Observer | `core/events.py` (`Subject.subscribe / notify`): views and explorers watch the document |
-| Command | `core/commands.py`, `ui/commands.py` (palette) |
-| Flyweight table | `systemverilog/typetable.py`, shared by `enums`, `structs`, `typedefs` |
-| Verifier | `systemverilog/features/leftover.py` |
-One file holds one feature or one box; adding a SystemVerilog feature is adding one file to `systemverilog/features/`.
-
-## Product basics
-- **Version / About / updates**: `Help > About` shows the version (`__version__` in `src/vibesimulation/__init__.py`). Update checks are **off** until `check_updates` is true and `update_url` (JSON `{"version", "url"}` or a GitHub release URL) is set in `~/.vibesimulation.json`; nothing is contacted otherwise. Code: `product/updates.py`, `ui/product/about.py`.
-- **Examples gallery** (`Help > Examples gallery`, command palette): 19 examples with a short tutorial each (5 Logisim, 4 Multisim, 5 VLSI, 4 SystemVerilog). Data: `product/examples.py`; window: `ui/product/gallery.py`; test: `dev/exampletest.py`.
-- **Autosave and crash recovery**: every 20 s the four sections are written to `~/.vibesimulation-recovery.json` (only if changed); a normal exit deletes it; after a crash the next start offers to restore. `product/recovery.py`, `ui/product/hooks.py`; tests `dev/producttest.py`, `dev/guitest41.py`.
-- **Big circuits**: above 150 parts (or when the wire router needs more than 5 s) wires are drawn as simple guide lines and the status line says so; the logic is exact. Such a layout cannot be exported to `.circ` (a clear message). A 1200-gate circuit loads in about 2 s. Test: `dev/perftest.py`, timings: `dev/perf.py`.
-- **Logisim `.circ` files** open directly in Logisim and VLSI (`File > Open Logisim file`); parts that cannot be imported are listed in a compatibility report instead of being dropped silently. Test: `dev/circtest.py`.
-- **Multisim**: potentiometer (`Potentiometer`, `pos` 0..1) and real diode models (`"model": "1N4148" | "1N4007" | "1N5819" | "BAT54" ...`, IS and N only, no series resistance). Op-amps and transient analysis with plot were already there. Test: `dev/analogtest4.py`.
-- **Installers** (untested, no Windows or macOS here): `packaging/windows/` (Inno Setup), `packaging/macos/build_dmg.sh`, signing notes in `packaging/SIGNING.md`.
-
-## Which file does what
-Paths are inside `src/vibesimulation/`. Each feature has its own file(s).
-
-### Logisim workspace (`ui/logisim/`)
+### Logisim workspace (`workspaces/logisim/`)
 | File | What it does |
 |---|---|
-| `circuit_view.py` | **The Logisim circuit box**: drawing, zoom/pan, click inputs, **drag parts with the mouse**, right-click menus, Tidy, download icon |
-| `json_box.py` | **The JSON text box**: red error lines, live parsing (built on `ui/views/code_view.py`, the editor base it shares with the VLSI Verilog box; also the base of Multisim's JSON box) |
-| `truth_table.py` | **The truth table**: rows, Play / Repeat, copy icon, "show intermediate outputs" |
-| `parts_palette.py` | The **Parts** window (folders like Logisim's explorer) and the part Properties window |
-| `parts_folders.py` | The folder list itself (Wiring, Gates, Plexers, Arithmetic, Memory, Input/Output, TTL, TCL, BFH, Input/Output Extra, System On a Chip). Edit this to move parts between folders |
+| `circuit/circuit_view.py` | **The Logisim circuit box**: drawing, zoom/pan, click inputs, **drag parts with the mouse**, right-click menus, Tidy, download icon |
+| `json_view/json_box.py` | **The JSON text box**: red error lines, live parsing (built on `ui/views/code_view.py`, the editor base it shares with the VLSI Verilog box; also the base of Multisim's JSON box) |
+| `truth_table/truth_table.py` | **The truth table**: rows, Play / Repeat, copy icon, "show intermediate outputs" |
+| `circuit/parts_palette.py` | The **Parts** window (folders like Logisim's explorer) and the part Properties window |
+| `circuit/parts_folders.py` | The folder list itself (Wiring, Gates, Plexers, Arithmetic, Memory, Input/Output, TTL, TCL, BFH, Input/Output Extra, System On a Chip). Edit this to move parts between folders |
 | `workspace.py` | Puts the three Logisim boxes side by side |
 
-### Multisim workspace (`ui/multisim/`)
+### Multisim workspace (`workspaces/multisim/`)
 | File | What it does |
 |---|---|
-| `schematic_view.py` | **Box 1, the schematic**: drawing, drag parts, add/edit parts, PDF and `.cir` icons |
-| `json_box.py` | **Box 2, the analog JSON** |
-| `results_view.py` | **Box 3, DC results** (node voltages, currents, power) |
+| `schematic/schematic_view.py` | **Box 1, the schematic**: drawing, drag parts, add/edit parts, PDF and `.cir` icons |
+| `json_view/json_box.py` | **Box 2, the analog JSON** |
+| `results/results_view.py` | **Box 3, results**: DC table, the analysis chooser and the **Show results for** picker (`results/focus.py`: choose parts / nets, every analysis follows) |
+| `results/analysis_panel.py`, `ac_panels.py`, `more_panels.py` | DC sweep + Thevenin; phasors, Bode, transient; parameter / temperature sweeps, Monte Carlo, noise |
 | `workspace.py` | Puts the three Multisim boxes side by side |
-| `../../analog/` | The analog engine: `components.py` (parts), `netlist.py` (JSON, validation, SPICE), `solver.py` (DC solver), `layout.py` (schematic placement and wire stretching), `painter.py` (draws a schematic on screen or PDF) |
+| `engine/` (was `analog/`) | The analog engine: `components.py` (parts), `netlist.py` (JSON, validation, SPICE), `solver.py` (DC solver), `layout.py` (schematic placement and wire stretching), `painter.py` (draws a schematic on screen or PDF) |
 
-### AI import and file import (`ui/ai_import/`, `ai/`, `imports/`)
+### AI import and file import (`workspaces/ai_import/`, `imports/`)
 | File | What it does |
 |---|---|
-| `ui/ai_import/import_view.py` | The whole Import & AI page: image import / paste, preview, model choice, Convert (locks the page while the AI works), open `.circ` / `.cir`, Open-in-Logisim / Open-in-Multisim buttons |
-| `ui/ai_import/import_page.py` | Wraps the view into a full-width page |
-| `ai/providers.py`, `ai/prompt.py` | Talking to Gemini, OpenRouter, Groq, Ollama, Claude, OpenAI, custom; the instructions sent with the picture |
-| `imports/logisim_in.py`, `imports/spice_in.py` | Read Logisim `.circ` and SPICE `.cir` files into JSON |
+| `ui/import_view.py` | The whole Import & AI page: image import / paste, preview, model choice, Convert (locks the page while the AI works), open `.circ` / `.cir`, Open-in-Logisim / Open-in-Multisim buttons |
+| `ui/import_page.py`, `ui/skin.py`, `ui/viewer.py` | Wraps the view into a full-width page |
+| `engine/providers.py`, `engine/prompt.py`, `engine/key_detect.py`, `engine/secrets.py` | Talking to Gemini, OpenRouter, Groq, Ollama, Claude, OpenAI, custom; the instructions sent with the picture |
+| `logisim/circ_file/logisim_in.py`, `multisim/spice_file/spice_in.py` | Read Logisim `.circ` and SPICE `.cir` files into JSON (`imports/__init__.py` picks the right reader for any file) |
+| `settings/ai_import.py` | The Import & AI entry on the Settings page |
 
 ### Settings (`ui/settings/`)
 `page.py` is the Settings window (categories, search, rows). **Every setting is one small file in `ui/settings/items/`** (`theme.py`, `accent_colour.py`, `corner_style.py`, `density.py`, `text_size.py`, `font.py`, `side_bar_*.py`, `reduce_motion.py`, `high_contrast.py`, `status_bar.py`, `reset_appearance.py`, `auto_open.py`, `remember_window.py`, `pane_layout.py`, `recent_files.py`, `table_bits.py`, `show_intermediate.py`, `play_speed.py`, `grid.py`, `digits.py`, `ai_import.py`). To add a setting: copy one of them and add its name to `items/__init__.py`.
@@ -157,12 +82,12 @@ Paths are inside `src/vibesimulation/`. Each feature has its own file(s).
 | `layout/` | placement + wire routing (`engine.py` honours moved parts), `painter.py` |
 | `export/` | `logisim.py` (`.circ`), `pdf.py` (Logisim PDF and Multisim PDF) |
 
-To add a part: create a file in `components/<library>/`, subclass `Component`, decorate with `@register`, and list it in `ui/logisim/parts_folders.py`.
+To add a part: create a file in `components/<library>/`, subclass `Component`, decorate with `@register`, and list it in `workspaces/logisim/circuit/parts_folders.py`.
 
 ## Moving parts
 Drag a part in the Logisim circuit or the Multisim schematic. Like in Logisim, **the wires keep their shape**: only the wires on the part's pins stretch along (with a right-angle bend); every other wire stays where it is. It snaps to the grid and the wires follow. **None of this appears in the JSON**: positions, wire routes and orientation are *layout state* kept beside the JSON (see "Circuit and JSON" below). Undo/redo, `.circ`, `.cir` and PDF all follow. **Tidy** (or right-click > Put back in automatic place) removes the saved positions. A drop that would overlap another part, or leave wires that cannot be drawn, is refused. Input and output pins cannot be moved yet.
 
-**Wires and pins work like in Logisim** (both workspaces, files `ui/logisim/dragging.py`, `ui/multisim/schematic_view.py`, `layout/wire_edit.py`):
+**Wires and pins work like in Logisim** (both workspaces, files `workspaces/logisim/circuit/dragging.py`, `workspaces/multisim/schematic/schematic_view.py`, `layout/wire_edit.py`):
 - drag a **piece** of wire sideways (joined pieces stretch along); drag a **corner or open end** to reshape the wire; **Shift+drag** on a wire adds a new bend;
 - drag a part's **output pin** (or **Ctrl+drag** a circuit input) onto an input pin to connect them; in Multisim drag from one part **terminal** to another to join their nets;
 - Logisim circuit **input and output pins** can be moved too (a plain click on an input still toggles it);

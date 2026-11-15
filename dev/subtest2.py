@@ -3,7 +3,7 @@ import json, subprocess, sys, itertools, re
 sys.path.insert(0, "src")
 import vibesimulation.components
 from vibesimulation.core.document import Document
-from vibesimulation.imports.logisim_in import circ_to_json, parse_project
+from vibesimulation.workspaces.logisim.circ_file.logisim_in import circ_to_json, parse_project
 
 d = Document()
 d.load_text('{"inputs":["a","b"],"outputs":["s","c"],"gates":[{"id":"x","type":"XOR","in":["a","b"],"out":"s"},{"id":"n","type":"AND","in":["a","b"],"out":"c"}]}')

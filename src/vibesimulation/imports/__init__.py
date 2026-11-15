@@ -2,7 +2,7 @@
 import json
 import os
 
-from ..analog.netlist import dumps as adumps, parse as aparse
+from ..workspaces.multisim.engine.netlist import dumps as adumps, parse as aparse
 from ..core.serializer import dumps, parse
 
 MULTISIM_NATIVE = (".ms14", ".ms13", ".ms12", ".ms11", ".ms10", ".ms9", ".ms8", ".msm", ".ewprj")
@@ -35,7 +35,7 @@ def load_file(path):
     except UnicodeDecodeError: text = data.decode("latin-1")
     head = text.lstrip()[:300].lower()
     if ext in LOGISIM_EXT or head.startswith("<?xml") or "<project" in head:
-        from .logisim_in import circ_to_json
+        from ..workspaces.logisim.circ_file.logisim_in import circ_to_json
         js, notes = circ_to_json(text); return "digital", js, notes
     if head.startswith("{"):
         try: raw = json.loads(text)
@@ -51,5 +51,5 @@ def load_file(path):
             if c is None: raise ValueError("; ".join(errs))
             return "digital", dumps(c), []
         raise ValueError("This JSON file is not a circuit.")
-    from .spice_in import spice_to_json
+    from ..workspaces.multisim.spice_file.spice_in import spice_to_json
     js, notes = spice_to_json(text); return "analog", js, notes

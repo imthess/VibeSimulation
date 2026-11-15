@@ -9,10 +9,10 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..components.registry import ComponentRegistry as R
-from .logisim.parts_folders import FOLDERS
-from .multisim.parts_bin import BIN, label as part_label
-from .systemverilog.side_panel import SystemVerilogExplorer
-from .vlsi.side_panel import VlsiExplorer
+from ..workspaces.logisim.circuit.parts_folders import FOLDERS
+from ..workspaces.multisim.schematic.parts_bin import BIN, label as part_label
+from ..workspaces.systemverilog.editor.side_panel import SystemVerilogExplorer
+from ..workspaces.verilog.editor.side_panel import VlsiExplorer
 
 TITLES = {"settings": "SETTINGS", "logisim": "LOGISIM EXPLORER", "multisim": "COMPONENTS", "files": "EXPLORER", "vlsi": "VLSI EXPLORER", "systemverilog": "SYSTEMVERILOG EXPLORER"}
 
@@ -23,20 +23,20 @@ class SideBar(tk.Frame):
     def __init__(self, ctx, master, shell):
         super().__init__(master, bd=0); self.ctx, self.sh = ctx, shell
         self.pack_propagate(False); self.configure(width=int(ctx.cfg.get("side_width", 262)))
-        self.head = tk.Frame(self, bd=0); self.head.pack(fill="x")
+        self.head = tk.Frame(self, bd=0); self.head.pack(fill="x", padx=10, pady=(8, 0))
         self.title = tk.Label(self.head, text="", font=ctx.f_small, anchor="w"); self.title.pack(side="left", padx=(18, 0), pady=(10, 8))
-        self.body = tk.Frame(self, bd=0); self.body.pack(fill="both", expand=True)
+        self.body = tk.Frame(self, bd=0); self.body.pack(fill="both", expand=True, padx=10, pady=(0, 12))
         self.views, self.cur = {}, None
         self.sash = tk.Frame(master, width=4, cursor="sb_h_double_arrow", bd=0)
-        self.sash.bind("<B1-Motion>", self._drag); self.sash.bind("<ButtonRelease-1>", lambda e: (ctx.cfg.__setitem__("side_width", int(self["width"])), ctx.save_cfg()))
-        ctx.themed.append(self.paint); self.paint()
+        ctx.glass.attach(self.sash); self.sash.bind("<B1-Motion>", self._drag); self.sash.bind("<ButtonRelease-1>", lambda e: (ctx.cfg.__setitem__("side_width", int(self["width"])), ctx.save_cfg()))
+        ctx.glass.attach(self, ctx.r_card, "panel", (2, 2, 2, 3)); ctx.themed.append(self.paint); self.paint()
 
     def paint(self):
-        P = self.ctx.P; st = self.ctx.style
-        for w in (self, self.head, self.body): w.configure(bg=P["soft"])
-        self.title.configure(bg=P["soft"], fg=P["muted"]); self.sash.configure(bg=P["border"])
-        st.configure("Side.Treeview", background=P["soft"], fieldbackground=P["soft"], foreground=P["text"], rowheight=int(self.ctx.f_body.metrics("linespace") + 8), borderwidth=0, relief="flat", font=self.ctx.f_body)
-        st.map("Side.Treeview", background=[("selected", P["accent"])], foreground=[("selected", P["accent_fg"])])
+        P = self.ctx.P; st = self.ctx.style; self.ctx.glass.attach(self, self.ctx.r_card, "panel", (2, 2, 2, 3))
+        for w in (self, self.head, self.body): w.configure(bg=P["card"])
+        self.title.configure(bg=P["card"], fg=P["muted"])
+        st.configure("Side.Treeview", background=P["card"], fieldbackground=P["card"], foreground=P["text"], rowheight=int(self.ctx.f_body.metrics("linespace") + 8), borderwidth=0, relief="flat", font=self.ctx.f_body)
+        st.map("Side.Treeview", background=[("selected", P["sel"])], foreground=[("selected", P["text"])])
         st.layout("Side.Treeview", [("Treeview.treearea", {"sticky": "nswe"})])
         for v in self.views.values():
             if hasattr(v, "paint"): v.paint()
@@ -71,15 +71,45 @@ class LogisimExplorer(tk.Frame):
         self.bar = tk.Frame(self, bd=0); self.bar.pack(fill="x", padx=10, pady=(0, 6))          # Logisim's explorer toolbar
         self.b_edit = Btn(ctx, self.bar, "↖  Edit tool", lambda: self.view().set_tool(None), "secondary", pady=3, padx=9).tip("Edit tool: select, move and wire (Esc)"); self.b_edit.pack(side="left", padx=(0, 4))
         Btn(ctx, self.bar, "+ Circuit", lambda: self.view().new_circuit(), "secondary", pady=3, padx=9).tip("Add another circuit to this project").pack(side="left")
+        from .props_panel import PropsPanel
+        self.props = PropsPanel(ctx, self); self.props.pack(side="bottom", fill="x"); self._hooked = False
         self.f, self.t = _tree(ctx, self); self.f.pack(fill="both", expand=True)
-        self.note = tk.Label(self, text="", font=ctx.f_small, anchor="w", justify="left", wraplength=230); self.note.pack(fill="x", padx=16, pady=(4, 8))
+        self.note = tk.Label(self, text="", font=ctx.f_small, anchor="w", justify="left", wraplength=230); self.note.pack(side="bottom", fill="x", padx=16, pady=(4, 8))
         self.t.bind("<<TreeviewSelect>>", self._select); self.t.bind("<Double-1>", self._double); self.t.bind("<Button-3>", self._right)
         self.t.tag_configure("dim", foreground=ctx.P["muted"]); self.t.tag_configure("cur", font=ctx.f_bold)
         shell.doc.subscribe(self._doc); self.paint()
+        from .palette_drag import PaletteDrag
+        self.drag = PaletteDrag(ctx, self.t, self._can_drag, lambda: self.view().canvas if self.sh.current == "logisim" else None, self._drop, self._hover)
+
+    def _can_drag(self, iid):
+        """Parts, input / output pins and other circuits of the project can be dragged out; folders and the greyed-out parts cannot."""
+        if iid.startswith("p:"): return iid.split(":", 2)[2]
+        if iid.startswith("c:") and iid[2:] != self.sh.doc.cur and iid[2:] in __import__("vibesimulation.core.project", fromlist=["x"]).placeable(): return iid[2:]
+        return None
+
+    def _drop(self, iid, x, y):
+        cv = self.view(); self._select(None) if cv.tool is None else None
+        if cv.tool is None: return
+        class _E: pass
+        e = _E(); e.x, e.y, e.state = x, y, 0
+        cv.place(e)
+
+    def _hover(self, x, y):
+        cv = self.view(); cv.canvas.delete("tip")
+        if x is None or cv.tool is None: return
+        class _E: pass
+        e = _E(); e.x, e.y = x, y; cv.tool_ghost(e)
 
     def paint(self):
-        P = self.ctx.P; self.configure(bg=P["soft"]); self.f.configure(bg=P["soft"]); self.bar.configure(bg=P["soft"]); self.note.configure(bg=P["soft"], fg=P["muted"])
-        self.t.tag_configure("dim", foreground=P["muted"]); self.t.tag_configure("cur", font=self.ctx.f_bold)
+        P = self.ctx.P; self.configure(bg=P["card"]); self.f.configure(bg=P["card"]); self.bar.configure(bg=P["card"]); self.note.configure(bg=P["card"], fg=P["muted"])
+        self.t.tag_configure("dim", foreground=P["muted"]); self.t.tag_configure("cur", font=self.ctx.f_bold); self.props.paint()
+
+    def _hook(self):
+        if self._hooked: return
+        self._hooked = True; cv = self.view(); cv.draw_hooks = getattr(cv, "draw_hooks", []); cv.draw_hooks.append(self.show_props)
+
+    def show_props(self):
+        if self.winfo_ismapped(): logisim_props(self.props, self.view())
 
     def _doc(self, kind):
         if kind in ("circuits", "changed") and self.winfo_ismapped(): self.refresh_circuits()
@@ -88,6 +118,7 @@ class LogisimExplorer(tk.Frame):
 
     def refresh(self):
         """Rebuild the whole tree (keeps which folders are open)."""
+        self._hook(); self.after_idle(self.show_props)
         openf = {i for i in self.t.get_children("") if self.t.item(i, "open")} if self.t.get_children("") else {"proj"}
         self._lock = True; self.t.delete(*self.t.get_children(""))
         d = self.sh.doc
@@ -170,29 +201,42 @@ class LogisimExplorer(tk.Frame):
 class ComponentBin(tk.Frame):
     def __init__(self, ctx, master, shell):
         super().__init__(master, bd=0); self.ctx, self.sh = ctx, shell; self.cls = {}
+        from .props_panel import PropsPanel
+        self.props = PropsPanel(ctx, self); self.props.pack(side="bottom", fill="x"); self._hooked = False
         self.f, self.t = _tree(ctx, self); self.f.pack(fill="both", expand=True)
-        self.note = tk.Label(self, text="Double-click a component to add it to the schematic.", font=ctx.f_small, anchor="w", justify="left", wraplength=230); self.note.pack(fill="x", padx=16, pady=(4, 8))
+        self.note = tk.Label(self, text="Drag a component onto the schematic to add it.", font=ctx.f_small, anchor="w", justify="left", wraplength=230); self.note.pack(side="bottom", fill="x", padx=16, pady=(4, 8))
         self.t.bind("<Double-1>", self._double); self.t.bind("<Return>", self._double); self.t.bind("<<TreeviewSelect>>", self._select); self.paint()
+        from .palette_drag import PaletteDrag
+        sv = lambda: self.sh.pages["multisim"].views["schematic"]
+        self.drag = PaletteDrag(ctx, self.t, lambda iid: part_label(self.cls[iid]) if iid in self.cls else None, lambda: sv().canvas if self.sh.current == "multisim" else None,
+                                lambda iid, x, y: sv().place_at(self.cls[iid], x, y),
+                                lambda x, y: sv().ghost_part(self.cls.get(self.drag.iid), x, y))
 
     def paint(self):
-        P = self.ctx.P; self.configure(bg=P["soft"]); self.f.configure(bg=P["soft"]); self.note.configure(bg=P["soft"], fg=P["muted"])
+        P = self.ctx.P; self.configure(bg=P["card"]); self.f.configure(bg=P["card"]); self.note.configure(bg=P["card"], fg=P["muted"]); self.props.paint()
+
+    def show_props(self):
+        if self.winfo_ismapped(): multisim_props(self.props, self.sh.pages["multisim"].views["schematic"])
 
     def refresh(self):
+        if not self._hooked:
+            self._hooked = True; sv = self.sh.pages["multisim"].views["schematic"]; sv.draw_hooks = getattr(sv, "draw_hooks", []); sv.draw_hooks.append(self.show_props)
+        self.after_idle(self.show_props)
         if self.t.get_children(""): return
         for g, fams in BIN:
             self.t.insert("", "end", "g:" + g, text="  " + g, open=g in ("Basic", "Sources"))
             for fam, classes in fams:
-                fid = f"{g}:{fam}"; self.t.insert("g:" + g, "end", fid, text="  " + fam, open=False)
+                fid = f"{g}:{fam}"; self.t.insert("g:" + g, "end", fid, text="  " + (fam.replace("_", " ").capitalize() if fam.isupper() else fam), open=False)
                 for c in classes: self.t.insert(fid, "end", f"c:{c.type_name}", text="  " + part_label(c)); self.cls[f"c:{c.type_name}"] = c
 
     def _select(self, e):
         sel = self.t.selection()
         if sel and sel[0] in self.cls:
-            c = self.cls[sel[0]]; self.note.configure(text=f"{part_label(c)}: {c.summary}" if getattr(c, "summary", "") else "Double-click to add it.")
+            c = self.cls[sel[0]]; self.note.configure(text=f"{part_label(c)}: {c.summary}" if getattr(c, "summary", "") else "Drag it onto the schematic.")
 
     def _double(self, e):
         iid = self.t.identify_row(e.y) if hasattr(e, "y") and e.type == "4" else (self.t.selection() or [""])[0]
-        if iid in self.cls: self.sh.pages["multisim"].views["schematic"].place(self.cls[iid]); return "break"
+        if iid in self.cls: return "break"                       # a part is added by dragging it onto the schematic, not by double-clicking
         if iid: self.t.item(iid, open=not self.t.item(iid, "open"))
 
 
@@ -202,7 +246,7 @@ class RecentFiles(tk.Frame):
         self.f, self.t = _tree(ctx, self); self.f.pack(fill="both", expand=True); self.paths = {}
         self.t.bind("<Double-1>", self._open); self.t.bind("<Return>", self._open); self.paint()
 
-    def paint(self): self.configure(bg=self.ctx.P["soft"]); self.f.configure(bg=self.ctx.P["soft"])
+    def paint(self): self.configure(bg=self.ctx.P["card"]); self.f.configure(bg=self.ctx.P["card"])
 
     def refresh(self):
         self.t.delete(*self.t.get_children("")); self.paths = {}
@@ -235,7 +279,7 @@ class SettingsNav(tk.Frame):
         self.t.bind("<<TreeviewSelect>>", self._select); self.paint()
 
     def paint(self):
-        P = self.ctx.P; self.configure(bg=P["soft"]); self.f.configure(bg=P["soft"])
+        P = self.ctx.P; self.configure(bg=P["card"]); self.f.configure(bg=P["card"])
 
     def refresh(self): self.show_cat(self.sh.pages["settings"].cur, bool(self.sh.pages["settings"].q.get().strip()))
 
@@ -252,3 +296,74 @@ class SettingsNav(tk.Frame):
         if self._lock: return
         sel = self.t.selection()
         if sel: self.sh.pages["settings"].pick(sel[0])
+
+
+# ------------------------------------------------------------------------------------------------- properties panel contents
+def logisim_props(panel, cv):
+    """Fill the panel from what the Logisim circuit view has selected."""
+    from .props_panel import Field
+    from ..core import commands as C
+    d = cv.doc
+    if not d.valid or d.circuit is None:
+        return panel.show("Properties", "", [], ("none",))
+    c = d.circuit; run = cv.run
+    comps = {x.id: x for x in c.components}
+    psel = sorted(getattr(cv, "psel", ()) or ())
+    if cv.sel and cv.sel in comps and len(cv.sels) <= 1 and not psel:
+        comp = comps[cv.sel]; fl = [Field("Name", "ro", comp.id), Field("Type", "ro", comp.type_name), Field("Facing", "ro", comp.facing)]
+        for a in comp.attrs_spec:
+            cur = comp.attrs.get(a.name, a.default); lab = a.label or a.name
+            if a.kind == "choice":
+                fl.append(Field(lab, "choice", cur, lambda v, a=a, cid=comp.id: run(C.SetAttrs(cid, {a.name: next((x for x in a.choices if str(x) == v), v)})), [str(x) for x in a.choices]))
+            elif a.kind == "bool": fl.append(Field(lab, "bool", cur, lambda v, a=a, cid=comp.id: run(C.SetAttrs(cid, {a.name: bool(v)}))))
+            elif a.kind in ("int", "number"): fl.append(Field(lab, "int", cur, lambda v, a=a, cid=comp.id: run(C.SetAttrs(cid, {a.name: v}))))
+            elif a.kind == "str": fl.append(Field(lab, "str", cur, lambda v, a=a, cid=comp.id: run(C.SetAttrs(cid, {a.name: v}))))
+            else: fl.append(Field(lab, "ro", "(right-click → Properties…)"))
+        return panel.show(comp.type_name, comp.summary or "", fl, ("c", comp.id, tuple(sorted((k, str(v)) for k, v in comp.attrs.items())), comp.facing))
+    if len(psel) == 1 and not cv.sels:
+        kind, name = psel[0]
+        if kind == "in":
+            p = next((q for q in c.inputs if q.name == name), None)
+            if p is not None:
+                return panel.show("Input pin", "Click it with the hand tool to change its value.", [
+                    Field("Label", "str", p.name, lambda v, n=p.name: run(C.RenameSignal(n, v.strip())) if v.strip() else None),
+                    Field("Width (bits)", "int", p.width, lambda v, n=p.name: run(C.SetInputWidth(n, v)))], ("in", p.name, p.width))
+        else:
+            return panel.show("Output pin", "Draw a wire to it to show a signal.", [Field("Label", "ro", name)], ("out", name))
+    n = len(cv.sels) + len(psel) + len(getattr(cv, "wsel", ()) or ())
+    if n > 1: return panel.show("Selection", f"{len(cv.sels)} part(s), {len(psel)} pin(s), {len(cv.wsel)} wire piece(s) selected.", [], ("multi", n))
+    return panel.show("Circuit: " + d.cur, "Select a part, an input or an output to see its properties.", [
+        Field("Inputs", "ro", len(c.inputs)), Field("Outputs", "ro", len(c.outputs)), Field("Parts", "ro", len(c.components))], ("circ", d.cur, len(c.inputs), len(c.outputs), len(c.components)))
+
+
+def multisim_props(panel, sv):
+    from .props_panel import Field
+    from ..workspaces.multisim.engine import components as AC
+    from ..workspaces.multisim.engine.units import parse_value
+    d = sv.doc; nl = d.netlist
+    if nl is None or d.errors or not nl.parts: return panel.show("Properties", "", [], ("none",))
+    p = nl.part(sv.sel) if sv.sel else None
+    if p is None:
+        return panel.show("Circuit", "Click a part to see its properties.", [Field("Parts", "ro", len(nl.parts))], ("circ", len(nl.parts)))
+    pid = p.id
+    def rename(v):
+        v = v.strip()
+        if not v or v == pid: return
+        if nl.part(v) is not None: raise ValueError(f"There is already a part called {v}.")
+        sv.edit(lambda n: setattr(n.part(pid), "id", v)); sv.select_part(v)
+    def setval(v):
+        parse_value(v); sv.edit(lambda n: setattr(n.part(pid), "value", v.strip()))
+    def setextra(k, v):
+        if k != "control": parse_value(v) if k not in ("wave",) else None
+        cur = p.extra.get(k)
+        val = [x.strip() for x in v.split(",") if x.strip()] if isinstance(cur, list) else v.strip()
+        sv.edit(lambda n: n.part(pid).extra.__setitem__(k, val))
+    fl = [Field("Label", "str", pid, rename), Field("Type", "ro", p.type_name)]
+    if p.default is not None: fl.append(Field(f"Value ({p.unit})" if p.unit else "Value", "str", p.value, setval))
+    for k in p.extras:
+        cur = p.extra.get(k)
+        if k == "wave": fl.append(Field("Waveform", "choice", cur, lambda v, k=k: setextra(k, v), list(AC.Waveform.WAVES)))
+        else: fl.append(Field(k, "str", ", ".join(map(str, cur)) if isinstance(cur, list) else cur, lambda v, k=k: setextra(k, v)))
+    term = p.terminals or ()
+    fl.append(Field("Connects to", "ro", ", ".join((f"{t}={n}" if t else str(n)) for t, n in zip(term or [""] * len(p.nodes), p.nodes))))
+    return panel.show(p.type_name, p.summary or "", fl, ("p", pid, str(p.value), tuple(sorted((k, str(v)) for k, v in p.extra.items())), tuple(map(str, p.nodes))))

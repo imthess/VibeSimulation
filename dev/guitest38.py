@@ -32,6 +32,7 @@ lay = d.layout; pl = next(p for p in lay.parts if p.comp.id == "g2"); pin = next
 src = next(x for x in lay.wires if x[4] == "A"); mid = scr((src[0] + src[2]) / 2, src[1]) if src[1] == src[3] else None
 tgt = scr(pl.x + pin.dx, pl.y + pin.dy)
 if mid:
+    cv_view = w.pages["logisim"].views["circuit"]; cv_view.set_mode("wire")      # the Wire tool pulls a new wire out of the middle of a wire
     drag(mid, tgt)
     chk("a wire pulled from the middle of A onto the free pin connects it", d.circuit.component("g2").ins.get(PN) == "A" and d.valid)
     d.undo(); pump()
@@ -67,7 +68,7 @@ ad.edit(lambda n: n.merge_nets("n2", "n3")); pump(); chk("a merge that would sho
 ad.undo(); pump(); ad.load_sample(); pump()
 # unplug and leave a wire end
 sv.draw(); pump(); L = sv.L
-from vibesimulation.analog.layout import pin_xy
+from vibesimulation.workspaces.multisim.engine.layout import pin_xy
 pl = next(q for q in L.parts if q.part.id == "R3"); s_, ox, oy = sv.sc; px, py = pin_xy(pl, 0); a = (int(ox + px * s_), int(oy + py * s_))
 def sev(kind, x, y): sv.canvas.event_generate(kind, x=x, y=y); root.update()
 def sdrag(a, b, n=6):
@@ -88,7 +89,7 @@ chk("pulling a wire from a wire middle onto a terminal joins their nets", ad.net
 print("R5", before, "->", ad.netlist.part("R5").nodes, "net", net, ad.errors)
 ad.load_sample(); pump()
 # --- shell
-chk("activity bar is a single docked accent bar", w.rail.opt()["style"] == "Docked" and w.rail.opt()["color"] == "Accent")
+chk("activity bar is a floating glass capsule", w.rail.opt()["style"] == "Floating" and w.rail.opt()["color"] == "Dark")
 w.show("settings"); pump(); chk("settings categories live in the side panel", w.side.winfo_ismapped() and w.side.view().__class__.__name__ == "SettingsNav")
 w.side.view().t.selection_set("Appearance"); pump(); chk("clicking a category shows it", w.pages["settings"].cur == "Appearance")
 chk("the handle is visible", w.handle.winfo_ismapped())

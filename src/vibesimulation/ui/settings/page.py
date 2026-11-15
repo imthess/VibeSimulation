@@ -14,15 +14,15 @@ class SettingsPage(tk.Frame):
     def __init__(self, ctx, master, shell):
         super().__init__(master, bd=0); self.ctx, self.shell = ctx, shell
         self.cur, self.setters = CATS[0], {}
-        self.top = tk.Frame(self, bd=0); self.top.pack(side="top", fill="x", padx=14, pady=(12, 4))
-        self.hint = tk.Label(self.top, text="Settings", font=ctx.f_title, anchor="w"); self.hint.pack(side="left", padx=(0, 18))
+        self.top = tk.Frame(self, bd=0); self.top.pack(side="top", fill="x", padx=6, pady=(5, 3))
+        self.hint = tk.Label(self.top, text="Settings", font=ctx.f_title, anchor="w"); self.hint.pack(side="left", padx=(20, 18), pady=7)
         self.q = tk.StringVar(); self.q.trace_add("write", lambda *a: self.build())
         self.search = ttk.Entry(self.top, textvariable=self.q, style="Modern.TEntry"); self.search.pack(side="left", fill="x", expand=True, ipady=3)
         self.ph = tk.Label(self.search, text="⌕  Search settings  (Ctrl+F)", font=ctx.f_small, cursor="xterm"); self.ph.place(x=8, rely=0.5, anchor="w"); self.ph.bind("<Button-1>", lambda e: self.search.focus_set())
         self.q.trace_add("write", lambda *a: self.ph.place_forget() if self.q.get() else self.ph.place(x=8, rely=0.5, anchor="w"))
-        self.count = tk.Label(self.top, text="", font=ctx.f_small, anchor="e", width=20); self.count.pack(side="left", padx=(10, 0))
+        self.count = tk.Label(self.top, text="", font=ctx.f_small, anchor="e", width=20); self.count.pack(side="left", padx=(10, 20))
         self.search.bind("<Escape>", lambda e: (self.q.set(""), self.focus_cat(), "break")[1]); self.search.bind("<Down>", lambda e: (self.focus_cat(), "break")[1])
-        self.holder = tk.Frame(self, bd=0); self.holder.pack(side="left", fill="both", expand=True, padx=(8, 8), pady=(4, 8))
+        self.holder = tk.Frame(self, bd=0); self.holder.pack(side="left", fill="both", expand=True, padx=0, pady=(0, 5))
         ctx.themed.append(self._paint); self._paint(); self.card = None; self.build()
 
     # ---- navigation
@@ -167,5 +167,7 @@ class SettingsPage(tk.Frame):
 
     def _paint(self):
         P = self.ctx.P
-        for w in (self, self.holder): w.configure(bg=P["bg"])
-        self.hint.configure(bg=P["bg"], fg=P["text"]); self.count.configure(bg=P["bg"], fg=P["muted"]); self.top.configure(bg=P["bg"]); self.ph.configure(bg=P["input"] if "input" in P else P["soft"], fg=P["muted"])
+        for w in (self, self.holder): w.configure(bg=P["bg"]); self.ctx.glass.attach(w)
+        self.ctx.glass.attach(self.top, 22, "pill", (0, 0, 0, 0)); self.top.configure(bg=P["card"])
+        self.hint.configure(bg=P["card"], fg=P["text"]); self.count.configure(bg=P["card"], fg=P["muted"])
+        self.ph.configure(bg=P["input"] if "input" in P else P["soft"], fg=P["muted"])

@@ -2,8 +2,8 @@
 import subprocess, sys
 sys.path.insert(0, "src"); sys.path.insert(0, "dev")
 from vibesimulation.components.registry import ComponentRegistry as R
-from vibesimulation.export.logisim import HEADER, FOOTER
-from vibesimulation.imports.logisim_in import parse_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import HEADER, FOOTER
+from vibesimulation.workspaces.logisim.circ_file.logisim_in import parse_circ
 from vibesimulation.core import sim
 import seqtest as T
 
@@ -75,7 +75,7 @@ def rom_roundtrip():
     """ROM contents: our export -> Logisim runs it; our .circ import brings the contents back."""
     import json
     from vibesimulation.core.serializer import parse
-    from vibesimulation.export.logisim import to_circ
+    from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
     rom = {str(i): (i * 7 + 3) % 16 for i in range(8)}; rom["5"] = 0
     g = [T.ck(), {"id": "c", "type": "Counter", "width": 3, "in": {"Clk": "clk"}, "out": {"Q": "a"}},
          {"id": "r", "type": "ROM", "addr": 3, "width": 4, "contents": rom, "in": {"A": "a"}, "out": {"D": "d"}}]

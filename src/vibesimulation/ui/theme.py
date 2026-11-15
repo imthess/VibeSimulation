@@ -5,21 +5,21 @@ from tkinter import font as tkfont, ttk
 from .shapes import mix, on_color
 
 ACCENTS = {  # name: (accent in light mode, accent in dark mode)
-    "Graphite": ("#1b2234", "#e6e9f0"), "Blue": ("#2f5bea", "#7ba3ff"), "Teal": ("#0f8a80", "#3dd6c6"), "Green": ("#1f9d55", "#5fdc8c"),
+    "Sand": ("#2c2b27", "#efe7cd"), "Graphite": ("#1b2234", "#e6e9f0"), "Blue": ("#2f5bea", "#7ba3ff"), "Teal": ("#0f8a80", "#3dd6c6"), "Green": ("#1f9d55", "#5fdc8c"),
     "Amber": ("#c9780a", "#f2b84b"), "Rose": ("#d63a5a", "#ff7f98"), "Violet": ("#6d4fe0", "#a99bff"), "Indigo": ("#4f46e5", "#8b93ff"),
 }
-DEFAULT_ACCENT = "Blue"
-RADII = {"Sharp": (4, 4), "Rounded": (20, 11), "Pill": (26, 99)}     # (cards, buttons)
+DEFAULT_ACCENT = "Sand"
+RADII = {"Sharp": (4, 4), "Rounded": (18, 10), "Pill": (24, 99)}     # (cards, buttons)
 DENSITY = {"Compact": 0.8, "Comfortable": 1.0, "Spacious": 1.25}
 SCALES = (85, 100, 115, 130, 150)
 
 # Soft, calm surfaces: a tinted backdrop, lighter panels floating on it, one dark rail.
-_LIGHT = dict(bg="#e5ebf1", card="#f7f9fb", border="#d9e1e9", text="#111827", muted="#6b7585", soft="#ecf0f5", soft_h="#dfe6ee", field="#edf1f6",
-              ok="#157f3b", okbg="#e3f3ea", bad="#b42318", badbg="#fbe9e7", canvas="#fbfcfd", dot="#d3dce5", on="#16a34a", off="#a3abbd",
-              pin="#2f3650", gatefill="#ffffff", rail="#1b1e27", rail_sel="#353a47", rail_fg="#aab1c0", rail_on="#ffffff")
-_DARK = dict(bg="#131417", card="#1c1e23", border="#2a2d34", text="#eceef3", muted="#8b919d", soft="#25282f", soft_h="#2f333b", field="#181a1f",
-             ok="#4ade80", okbg="#14261c", bad="#f87171", badbg="#2a1719", canvas="#17181c", dot="#272a31", on="#34d399", off="#4a5368",
-             pin="#a9b2c8", gatefill="#1d2230", rail="#0c0d0f", rail_sel="#2b2e36", rail_fg="#8d93a1", rail_on="#ffffff")
+_LIGHT = dict(bg="#e9eef8", card="#f6f8fc", border="#d3dbea", text="#121826", muted="#667286", soft="#edf1f9", soft_h="#dfe6f3", field="#edf1f9",
+              ok="#157f3b", okbg="#e3f3ea", bad="#b42318", badbg="#fbe9e7", canvas="#fbfcff", dot="#d3dcea", on="#16a34a", off="#a3abbd",
+              pin="#2f3650", gatefill="#ffffff", rail="#181b26", rail_sel="#eee6cc", rail_fg="#aab1c4", rail_on="#ffffff")
+_DARK = dict(bg="#141821", card="#262b36", border="#3a4252", text="#eef1f7", muted="#98a1b3", soft="#2e3441", soft_h="#3a4150", field="#1d222c",
+             ok="#4ade80", okbg="#14261c", bad="#f87171", badbg="#2a1719", canvas="#1c2029", dot="#2a3040", on="#34d399", off="#5a6479",
+             pin="#b4bdd2", gatefill="#222836", rail="#0b0d12", rail_sel="#efe7cd", rail_fg="#97a0b3", rail_on="#ffffff")
 
 
 def palette(dark, accent, high_contrast=False):
@@ -97,7 +97,7 @@ class Theme:
         base = (pair[1] if self.dark else pair[0]) if pair else (acc if isinstance(acc, str) and acc.startswith("#") and len(acc) == 7 else ACCENTS[DEFAULT_ACCENT][0])
         if not pair and self.dark: base = mix(base, "#ffffff", 0.18)
         self.P = palette(self.dark, base, bool(c.get("high_contrast")))
-        self.r_card, rb = RADII.get(c.get("corners", "Rounded"), RADII["Rounded"]); self.r_btn = rb
+        self.r_card, rb = RADII.get(c.get("corners", "Pill"), RADII["Pill"]); self.r_btn = rb
         self.dens = DENSITY.get(c.get("density", "Comfortable"), 1.0)
         self.motion = not c.get("reduce_motion", False)
         scale = int(c.get("text_scale", 100)) / 100
@@ -124,6 +124,8 @@ class Theme:
     def apply(self):
         P, st = self.P, self.style
         self.root.configure(bg=P["bg"])
+        g = getattr(self, "glass", None)
+        if g is not None: g.repaint()
         st.configure(".", background=P["card"], foreground=P["text"], font=self.f_body)
         for nm in ("Vertical", "Horizontal"):
             lay = f"Thin.{nm}.TScrollbar"
@@ -133,7 +135,7 @@ class Theme:
             st.map(lay, background=[("active", P["muted"]), ("pressed", P["muted"])])
         ent = dict(fieldbackground=P["field"], foreground=P["text"], background=P["field"], bordercolor=P["border"], lightcolor=P["field"],
                    darkcolor=P["field"], insertcolor=P["text"], padding=(8, 5), selectbackground=P["sel"], selectforeground=P["text"])
-        st.configure("Modern.TEntry", **ent); st.map("Modern.TEntry", bordercolor=[("focus", P["accent"])], lightcolor=[("focus", P["accent"])], darkcolor=[("focus", P["accent"])])
+        st.configure("Modern.TEntry", **ent); st.map("Modern.TEntry", bordercolor=[("focus", P["accent"])])
         st.configure("Modern.TCombobox", **ent, arrowcolor=P["muted"], arrowsize=14)
         st.map("Modern.TCombobox", fieldbackground=[("readonly", P["field"])], foreground=[("readonly", P["text"])], bordercolor=[("focus", P["accent"])],
                lightcolor=[("focus", P["accent"])], darkcolor=[("focus", P["accent"])], background=[("active", P["soft"])], selectbackground=[("readonly", P["field"])],

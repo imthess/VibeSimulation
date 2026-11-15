@@ -157,7 +157,7 @@ class Switch(Focusable):
             rrect(self, x0, y0, x0 + w, y0 + h, h / 2, fill=mix(P["off"], P["card"], 0.35) if self._x < 0.5 else P["accent"], outline="")
             if self._x > 0 and self._x < 1: pass
             kx = x0 + h / 2 + (w - h) * self._x
-            self.create_oval(kx - h / 2 + 3, y0 + 3, kx + h / 2 - 3, y0 + h - 3, fill="#ffffff", outline="")
+            rrect(self, kx - h / 2 + 3, y0 + 3, kx + h / 2 - 3, y0 + h - 3, 999, fill="#ffffff")
             self.ring(0, 0, w + 4, h + 4, (h + 4) / 2)
         except tk.TclError: pass
 
@@ -256,12 +256,12 @@ class Swatches(Focusable):
             for i, n in enumerate(self.names):
                 x = 2 + i * (self.SZ + self.GAP); y = 6
                 col = (ACCENTS[n][1] if self.ctx.dark else ACCENTS[n][0]) if n in ACCENTS else (self.value if self.value not in ACCENTS else P["soft_h"])
-                self.create_oval(x, y, x + self.SZ, y + self.SZ, fill=col, outline=P["border"] if n != s else "")
+                rrect(self, x, y, x + self.SZ, y + self.SZ, 999, fill=col, outline=P["border"] if n != s else "")
                 if n == "Custom" and self.value in ACCENTS: self.create_text(x + self.SZ / 2, y + self.SZ / 2, text="+", font=self.ctx.f_bold, fill=P["muted"])
                 if n == s:
-                    self.create_oval(x - 4, y - 4, x + self.SZ + 4, y + self.SZ + 4, outline=P["muted"], width=1)
+                    rrect(self, x - 4, y - 4, x + self.SZ + 4, y + self.SZ + 4, 999, outline=P["muted"], width=1)
                     self.create_text(x + self.SZ / 2, y + self.SZ / 2, text="✓", font=self.ctx.f_bold, fill=P["accent_fg"] if n != "Custom" or self.value not in ACCENTS else "#fff")
-                if self.focused and self.ctx.kbd and i == self.idx: self.create_oval(x - 7, y - 7, x + self.SZ + 7, y + self.SZ + 7, outline=P["accent"], width=2)
+                if self.focused and self.ctx.kbd and i == self.idx: rrect(self, x - 7, y - 7, x + self.SZ + 7, y + self.SZ + 7, 999, outline=P["accent"], width=2)
         except tk.TclError: pass
 
 
@@ -334,21 +334,25 @@ class Card(TkBase.Canvas):
         self.badge = tk.Label(head, text=str(num), font=ctx.f_small, padx=7, pady=1) if num else None
         if self.badge: self.badge.pack(side="left", padx=(0, 8))
         self.title = tk.Label(head, text=title, font=ctx.f_title); self.title.pack(side="left")
-        self.hint = tk.Label(head, text=hint, font=ctx.f_small); self.hint.pack(side="left", padx=(12, 0))
+        self.hint = tk.Label(head, text=hint, font=ctx.f_small)             # kept for the code that sets it, never shown: titles stand alone
         self.tools = tk.Frame(head, bd=0); self.tools.pack(side="right")
         self.chrome = tk.Frame(head, bd=0); self.chrome.pack(side="right", before=self.tools, padx=(8, 0))   # pane buttons (swap / hide)
         self.body = tk.Frame(self.inner, bd=0); self.body.pack(fill="both", expand=True)
         self.body.columnconfigure(0, weight=1)
-        self.bind("<Configure>", lambda e: self.draw()); self.inner.bind("<Configure>", lambda e: self._req())
+        self.bind("<Configure>", lambda e: self.draw()); self.inner.bind("<Configure>", lambda e: self._req()); self.bind("<Map>", lambda e: self.draw())
         ctx.themed.append(self.paint); self.paint()
 
-    def inset(self): return 8 if self.flat else max(3, round(self.ctx.r_card * 0.32) + 2)
+    def glassy(self): return (not self.flat) and self.ctx.glass.enabled()
+
+    def inset(self): return 8 if self.flat else (max(8, round(self.ctx.r_card * 0.45)) if self.glassy() else max(3, round(self.ctx.r_card * 0.32) + 2))
 
     def _req(self):
-        i = self.inset(); w, h = self.inner.winfo_reqwidth() + 2 * i + self.SH, self.inner.winfo_reqheight() + 2 * i + self.SH
+        i = self.inset(); sh = self.SH if not self.glassy() else 0
+        w, h = self.inner.winfo_reqwidth() + 2 * i + sh, self.inner.winfo_reqheight() + 2 * i + sh
         if (int(self["width"]), int(self["height"])) != (w, h): self.configure(width=w, height=h)
 
     def draw(self):
+        if self.glassy(): return self._glass_draw()
         try:
             self.delete("shape"); P = self.ctx.P; sh = self.SH; w, h = self.winfo_width() - sh, self.winfo_height() - sh; i = self.inset()
             self.configure(bg=_parent_bg(self, P["bg"])); r = self.ctx.r_card
@@ -359,6 +363,29 @@ class Card(TkBase.Canvas):
                 rrect(self, 1, 1, w - 1, h - 1, r, fill=P["card"], outline="", tags="shape")
             self.tag_lower("shape")
             self.coords(self.win, i, i); self.itemconfigure(self.win, width=max(1, w - 2 * i), height=max(1, h - 2 * i))
+        except tk.TclError: pass
+
+    def _glass_draw(self):
+        """Frosted panel: the window backdrop behind the card, blurred and tinted, with a lit rim and a soft shadow."""
+        try:
+            w, h = self.winfo_width(), self.winfo_height(); i = self.inset()
+            self.coords(self.win, i, i); self.itemconfigure(self.win, width=max(1, w - 2 * i), height=max(1, h - 2 * i - 2))
+            if getattr(self, "_gjob", None): return
+            self._gjob = self.after(25, self._glass_paint)
+        except tk.TclError: pass
+
+    def _glass_paint(self):
+        self._gjob = None
+        try:
+            g = self.ctx.glass; w, h = self.winfo_width(), self.winfo_height()
+            if w < 8 or h < 8 or not self.winfo_ismapped(): return
+            key = (g._origin(self), w, h, self.ctx.r_card, self.ctx.dark, self.ctx.P["card"], self.ctx.P["bg"], g.gen)
+            if key == getattr(self, "_gkey", None): return
+            im = g.compose(self, self.ctx.r_card, "panel", pad=(2, 2, 2, 3), core=max(3, self.inset() - 5))
+            if im is None: return
+            from PIL import ImageTk
+            self._gimg = ImageTk.PhotoImage(im, master=self); self._gkey = key
+            self.delete("shape"); self.create_image(0, 0, image=self._gimg, anchor="nw", tags="shape"); self.tag_lower("shape")
         except tk.TclError: pass
 
     def paint(self):
@@ -379,7 +406,7 @@ class Toast:
         self.hide()
         bg = {"bad": P["bad"], "ok": P["ok"]}.get(kind, P["text"]); fg = P["card"] if kind == "info" else "#ffffff"
         f = ctx.f_small; H = max(30, f.metrics("linespace") + 14); w = f.measure(text) + 36
-        base = P["card"] if ctx.cfg.get("show_status", True) else P["bg"]
+        base = P["card"] if ctx.cfg.get("show_status", False) else P["bg"]
         cv = tk.Canvas(root, width=w, height=H, bd=0, highlightthickness=0, bg=base); self.w = cv
         rrect(cv, 1, 3, w - 1, H - 3, (H - 6) / 2, fill=bg, outline=bg); cv.create_text(w / 2, H / 2, text=text, fill=fg, font=f)
         cv.bind("<Button-1>", lambda e: self.hide()); cv.configure(cursor="hand2")
@@ -395,3 +422,44 @@ class Toast:
             if self.w is not None: self.w.destroy()
         except tk.TclError: pass
         self.w = None
+
+
+class QuietLabel(tk.Label):
+    """Status line under a drawing: instructions and tips stay hidden, only warnings and errors show (and the line takes no room when empty)."""
+    SHOW = ("⚠", "rror", "annot", "ould not", "roblem", "nvalid", "ailed", "Fix ", "Verilog", "is now", "joined", "can't", "not allowed", "read-only", "refus")
+
+    over = None                                           # the canvas it floats over (no layout space, so the drawing never jumps)
+
+    def configure(self, cnf=None, **kw):
+        if "text" in kw:
+            t = str(kw["text"] or ""); kw["text"] = t if any(k in t for k in self.SHOW) else ""
+            try:
+                if kw["text"] and self.over is not None:
+                    P = self.master.ctx.P if hasattr(self.master, "ctx") else None
+                    self.place(in_=self.over, relx=0, rely=1.0, x=10, y=-10, anchor="sw"); tk.Misc.lift(self)
+                else: self.place_forget()
+            except tk.TclError: pass
+        return super().configure(cnf, **kw) if (cnf or kw) else super().configure()
+    config = configure
+
+
+class Slider(Focusable):
+    """Smooth slider: a rounded track with a round knob (anti-aliased). value 0..100; command(value) while dragging."""
+    def __init__(self, ctx, master, value, command, width=120):
+        super().__init__(ctx, master, cursor="hand2", width=width, height=24)
+        self.value, self.cmd = max(0, min(100, int(value))), command
+        self.bind("<Button-1>", self._set); self.bind("<B1-Motion>", self._set)
+        self.bind("<Left>", lambda e: self.nudge(-5)); self.bind("<Right>", lambda e: self.nudge(5)); self.paint()
+
+    def nudge(self, d): self.value = max(0, min(100, self.value + d)); self.draw(); self.cmd(self.value); return "break"
+
+    def _set(self, e):
+        self.focus_set(); w = max(1, self.winfo_width() - 20); self.value = round(max(0, min(1, (e.x - 10) / w)) * 100); self.draw(); self.cmd(self.value)
+
+    def draw(self):
+        try:
+            self.delete("all"); P = self.ctx.P; w, h = max(self.winfo_width(), 40), 24; self.configure(bg=_parent_bg(self, P["card"]))
+            x = 10 + (w - 20) * self.value / 100
+            rrect(self, 4, 9, w - 4, 15, 999, fill=P["soft_h"]); rrect(self, 4, 9, max(8, x), 15, 999, fill=P["accent"])
+            rrect(self, x - 9, 3, x + 9, 21, 999, fill="#ffffff", outline=P["border"]); self.ring(0, 0, w, h, 11)
+        except tk.TclError: pass

@@ -2,8 +2,8 @@
 import sys, subprocess, re
 sys.path.insert(0, "src")
 import vibesimulation.components
-from vibesimulation.export.logisim import HEADER
-from vibesimulation.imports.logisim_in import parse_project
+from vibesimulation.workspaces.logisim.circ_file.logisim import HEADER
+from vibesimulation.workspaces.logisim.circ_file.logisim_in import parse_project
 head = HEADER.replace("@MAIN@", "main").split('  <circuit name="main">')[0] if '<circuit name="main">' in HEADER else HEADER.replace("@MAIN@", "main")
 def pin(x, y, label, out): return f'    <comp lib="0" loc="({x},{y})" name="Pin">\n' + ('      <a name="facing" val="west"/>\n      <a name="output" val="true"/>\n' if out else '') + f'      <a name="label" val="{label}"/>\n    </comp>\n'
 bad = 0

@@ -31,7 +31,7 @@ class CircuitPainter:
     def __init__(self, renderer: Renderer):
         self.r = renderer
 
-    def paint(self, layout, circuit, values, invals=None, junctions=True):
+    def paint(self, layout, circuit, values, invals=None, junctions=True, dots=True):
         r, invals = self.r, invals or {}
         widths = circuit.signals()
         for k, (a, b, c, d, net) in enumerate(layout.wires):
@@ -55,8 +55,10 @@ class CircuitPainter:
                     r.circle(pl.x + p.dx, pl.y + p.dy, 3, _state(values.get(sig)), None, 0, ("opin", f"opin:{comp.id}:{p.name}"))
         for pin, x, y in layout.inputs:
             self._pin(pin, x - pin_box_width(pin.width), x, y, values.get(pin.name), "in", ("inpin", "inpin:" + pin.name))
+            if dots: r.circle(x, y, 3.5, _state(values.get(pin.name)), None, 0, ("indot", "indot:" + pin.name))                     # where a wire can be pulled out
         for pin, x, y in layout.outputs:
             self._pin(pin, x, x + pin_box_width(pin.width), y, values.get(pin.name), "out", ("outpin", "outpin:" + pin.name))
+            if dots: r.circle(x, y, 4, FILL, MUTED, 1.5, ("outdot", "outdot:" + pin.name)) if getattr(pin, "floating", False) else r.circle(x, y, 4, _state(values.get(pin.name)), FILL, 1.5, ("outdot", "outdot:" + pin.name))
 
     def _pin(self, pin, xa, xb, y, v, kind, tags):
         r = self.r

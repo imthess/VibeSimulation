@@ -2,9 +2,9 @@ import sys
 sys.path.insert(0, "src")
 from vibesimulation.components import load_all
 load_all()
-from vibesimulation.analog.netlist import parse, to_spice, Netlist
-from vibesimulation.analog.document import SAMPLE
-from vibesimulation.imports.spice_in import spice_to_json
+from vibesimulation.workspaces.multisim.engine.netlist import parse, to_spice, Netlist
+from vibesimulation.workspaces.multisim.engine.document import SAMPLE
+from vibesimulation.workspaces.multisim.spice_file.spice_in import spice_to_json
 import json, random
 # 1) our own .cir export -> import -> same solution
 nl, _ = parse(SAMPLE); cir = to_spice(nl); js, notes = spice_to_json(cir)

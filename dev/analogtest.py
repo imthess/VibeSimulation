@@ -1,9 +1,9 @@
 """Independent checks of the analog solver: KCL, KVL, power balance, textbook circuits, diode equation, validation and SPICE text."""
 import sys, os, random, math, json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-from vibesimulation.analog.netlist import parse, to_spice, dumps
-from vibesimulation.analog.document import AnalogDocument, SAMPLE
-from vibesimulation.analog.solver import SolveError, is_ground
+from vibesimulation.workspaces.multisim.engine.netlist import parse, to_spice, dumps
+from vibesimulation.workspaces.multisim.engine.document import AnalogDocument, SAMPLE
+from vibesimulation.workspaces.multisim.engine.solver import SolveError, is_ground
 bad = 0
 def ok(c, m):
     global bad

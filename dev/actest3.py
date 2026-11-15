@@ -2,8 +2,8 @@
 import sys, os, json, math
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse, to_spice, dumps
-from vibesimulation.imports.spice_in import parse_spice
+from vibesimulation.workspaces.multisim.engine.netlist import parse, to_spice, dumps
+from vibesimulation.workspaces.multisim.spice_file.spice_in import parse_spice
 bad = 0
 def chk(n, c):
     global bad; print("ok  " if c else "FAIL", n); bad += (not c)

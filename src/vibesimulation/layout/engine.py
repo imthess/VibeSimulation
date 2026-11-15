@@ -177,10 +177,11 @@ class LayoutEngine:
                 else: sinks.append((sig, pl.level, pos))
         out_y, used = {}, []
         for o in c.outputs:
-            y = src_y[o.name]
+            y = src_y.get(o.name, IN_Y0 + IN_DY * (n_in + len(used)))         # a floating output (not connected yet) has no signal to follow
             while any(abs(y - u) < 40 for u in used): y += 10
             used.append(y); out_y[o.name] = y
-            pos = o.pos or (out_x, y); opos[o.name] = pos; ports[pos] = o.name; sinks.append((o.name, M + 1, pos))
+            pos = o.pos or (out_x, y); opos[o.name] = pos; ports[pos] = o.name
+            if o.name in src_y or o.name in sources: sinks.append((o.name, M + 1, pos))
             rects.append((pos[0], pos[1] - 10, -(-(pos[0] + pin_box_width(o.width) + 60) // 10) * 10, pos[1] + 10))
             for k in (10, 20): reserved[(pos[0] - k, pos[1])] = o.name
         bottom = max([bottom] + used)

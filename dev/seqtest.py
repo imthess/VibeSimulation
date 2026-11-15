@@ -3,7 +3,7 @@ import json, subprocess, sys
 sys.path.insert(0, "src")
 from vibesimulation.core.serializer import parse
 from vibesimulation.core import sim
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 
 HALT = {"id": "hc", "type": "Counter", "width": 6, "max": 0, "in": {"Clk": "clk"}, "out": {"Carry": "halt"}}   # halts after 63 rising edges
 

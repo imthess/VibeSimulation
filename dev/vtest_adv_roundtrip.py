@@ -2,9 +2,9 @@
 import sys
 sys.path.insert(0, "src")
 import vibesimulation.components
-from vibesimulation.verilog.elab import elaborate
-from vibesimulation.verilog.emit import circuit_to_verilog, equivalent
-from vibesimulation.verilog.lexer import VError
+from vibesimulation.workspaces.verilog.engine.elab import elaborate
+from vibesimulation.workspaces.verilog.engine.emit import circuit_to_verilog, equivalent
+from vibesimulation.workspaces.verilog.engine.lexer import VError
 ns = {}
 code = open("dev/vtest_adv.py").read().split("bad_total = 0")[0].replace("from vcheck import compare", "")
 exec(code, ns)

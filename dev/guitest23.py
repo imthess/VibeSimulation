@@ -4,7 +4,7 @@ import tkinter as tk
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.ui.main_window import MainWindow
 from vibesimulation.core.serializer import parse
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 root = tk.Tk(); root.geometry("1280x800"); w = MainWindow(root); ctx = w.ctx
 w.doc.load_sample(); w.show("logisim"); root.update(); v = w.pages["logisim"].views["circuit"]; root.update()
 cv = v.canvas; d = w.doc
@@ -18,8 +18,8 @@ def drag(x0, y0, x1, y1, state=0, steps=8):
     for i in range(1, steps + 1): ev("<B1-Motion>", sx + (ex - sx) * i / steps, sy + (ey - sy) * i / steps, state)
     ev("<ButtonRelease-1>", ex, ey, state)
 def ok(name, cond): print(("ok   " if cond else "FAIL ") + name)
-# 1. click toggles input
-sx, sy = L2S(110, 120); ev("<Button-1>", sx, sy); ev("<ButtonRelease-1>", sx, sy); ok("click toggles A", d.invals.get("A") == 1)
+# 1. click toggles input (with the Poke tool, like Logisim)
+v.set_mode("poke"); sx, sy = L2S(110, 120); ev("<Button-1>", sx, sy); ev("<ButtonRelease-1>", sx, sy); ok("click toggles A", d.invals.get("A") == 1); v.set_mode("edit")
 ev("<Button-1>", sx, sy); ev("<ButtonRelease-1>", sx, sy)
 # 2. move input pin B downward
 drag(110, 160, 110, 260); pb = next(p for p, x, y in d.circuit.inputs and [(p, 0, 0) for p in d.circuit.inputs] if p.name == "B")

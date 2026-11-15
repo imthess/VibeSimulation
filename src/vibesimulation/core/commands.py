@@ -76,11 +76,16 @@ class RenameSignal(Command):
 
 
 class AddOutput(Command):
+    """An output pin showing `signal`; signal=None puts down a loose output pin that is connected later (Logisim: place the pin, then wire it)."""
     def __init__(self, signal, pos=None):
         self.signal, self.pos = signal, pos
 
     def apply(self, c):
-        pin = IOPin(self.signal, 1)
+        if self.signal is None:
+            used = set(c.signals()) | set(c.output_names()); k = 1
+            while f"Out{k}" in used: k += 1
+            pin = IOPin(f"Out{k}", 1); pin.floating = True
+        else: pin = IOPin(self.signal, 1)
         if self.pos: pin.pos = (int(self.pos[0]), int(self.pos[1]))
         c.outputs.append(pin)
 
@@ -104,7 +109,13 @@ class ChangeOutput(Command):
         self.old, self.new = old, new
 
     def apply(self, c):
-        c.outputs = [IOPin(self.new, 1) if p.name == self.old else p for p in c.outputs] if self.new else [p for p in c.outputs if p.name != self.old]
+        if not self.new: c.outputs = [p for p in c.outputs if p.name != self.old]; return
+        out = []
+        for p in c.outputs:
+            if p.name == self.old:
+                q = IOPin(self.new, 1); q.pos = p.pos; out.append(q)           # the pin stays where the user put it
+            else: out.append(p)
+        c.outputs = out
 
 
 class AddComponent(Command):
@@ -134,7 +145,7 @@ class AddComponent(Command):
         comp.facing = self.facing
         c.components.append(comp)
         c.sync()
-        if not c.outputs and comp.outs:
+        if self.wired and not c.outputs and comp.outs:
             c.outputs.append(IOPin(next(iter(comp.outs.values())), 1))
 
 
@@ -148,7 +159,8 @@ class DeleteComponent(Command):
             return
         gone = set(comp.outs.values())
         c.components.remove(comp)
-        c.outputs = [o for o in c.outputs if o.name not in gone]
+        for o in c.outputs:
+            if o.name in gone: o.floating = True                        # the output pin stays, unconnected (Logisim)
         for other in c.components:                                      # parts that listened to it are left with a floating pin (Logisim)
             for port in [k for k, v in other.ins.items() if v in gone]: other.ins.pop(port)
         for net in gone: c.wires.pop(net, None)
@@ -269,15 +281,18 @@ class DeleteMany(Command):
 
 
 class MoveParts(Command):
-    """Move a whole selection: new places for several parts. Hand-drawn routes of the signals that touch them are dropped (drawn again automatically)."""
-    def __init__(self, places, wires=None):
-        self.places, self.wires = dict(places), wires
+    """Move a whole selection: new places for several parts (and circuit pins: pins = {("in"|"out", name): (x, y)}). Hand-drawn routes of the signals that touch them are dropped (drawn again automatically)."""
+    def __init__(self, places, wires=None, pins=None):
+        self.places, self.wires, self.pins = dict(places), wires, dict(pins or {})
 
     def apply(self, c):
         for cid, (x, y) in self.places.items():
             comp = c.component(cid)
             if comp is None: raise ValueError(f"no part '{cid}'")
             comp.pos = (int(x), int(y))
+        for (kind, name), (x, y) in self.pins.items():
+            pin = next((p for p in (c.inputs if kind == "in" else c.outputs) if p.name == name), None)
+            if pin is not None: pin.pos = (int(x), int(y))
         if self.wires is not None: c.wires = {k: [list(t) for t in v] for k, v in self.wires.items()}
 
 
@@ -311,6 +326,20 @@ class PasteParts(Command):
                 s = comp.ins.get(p.name)
                 if s is not None and s not in have:
                     c.inputs.append(IOPin(s, p.width)); have.add(s)
+
+
+class PinLayout(Command):
+    """Write down where everything is drawn right now (parts and circuit pins that still have an automatic place get that place),
+    so adding or moving one thing never makes another one jump."""
+    def __init__(self, places, pins):
+        self.places, self.pins = dict(places), dict(pins)
+
+    def apply(self, c):
+        for comp in c.components:
+            if not comp.pos and comp.id in self.places: comp.pos = tuple(self.places[comp.id])
+        for kind, pins in (("in", c.inputs), ("out", c.outputs)):
+            for p in pins:
+                if not p.pos and (kind, p.name) in self.pins: p.pos = tuple(self.pins[(kind, p.name)])
 
 
 class Batch(Command):

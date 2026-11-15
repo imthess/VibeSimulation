@@ -1,5 +1,5 @@
 """Built-in SystemVerilog examples (registered in the same list as the others)."""
-from ..systemverilog.samples import SAMPLE
+from ..workspaces.systemverilog.engine.samples import SAMPLE
 from .examples import add
 
 add("systemverilog", "traffic", "Traffic light with an enum", "Beginner", "A state machine whose states are named with an enum.",

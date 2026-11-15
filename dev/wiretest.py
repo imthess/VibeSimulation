@@ -5,7 +5,7 @@ import tkinter as tk
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.ui.main_window import MainWindow
 from vibesimulation.core.serializer import parse
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 root = tk.Tk(); root.geometry("1280x800"); w = MainWindow(root); ctx = w.ctx
 w.doc.load_sample(); w.show("logisim"); root.update(); v = w.pages["logisim"].views["circuit"]; root.update()
 lay = w.doc.layout; s = v.scale; ox, oy = v.org

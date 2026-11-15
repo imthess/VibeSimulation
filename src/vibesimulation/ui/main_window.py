@@ -3,9 +3,9 @@ import time
 import tkinter as tk
 
 from ..core.document import Document
-from ..analog.document import AnalogDocument
-from ..systemverilog.document import SvDocument
-from ..vlsi.document import VlsiDocument
+from ..workspaces.multisim.engine.document import AnalogDocument
+from ..workspaces.systemverilog.engine.document import SvDocument
+from ..workspaces.verilog.project.document import VlsiDocument
 from .actions import AnalogActions, FileActions
 from .commands import Palette, build_commands, shortcuts_sheet
 from .context import UiContext
@@ -13,14 +13,14 @@ from .menubar import MenuBar
 from .rail import Rail
 from .sidebar import SideBar
 from .pages.home_page import HomePage
-from .ai_import.import_page import ImportPage
-from .multisim.workspace import MultisimPage
+from ..workspaces.ai_import.ui.import_page import ImportPage
+from ..workspaces.multisim.workspace import MultisimPage
 from .settings.page import SettingsPage
-from .logisim.workspace import WorkspacePage
-from .systemverilog.actions import SystemVerilogActions
-from .systemverilog.workspace import SystemVerilogPage
-from .vlsi.actions import VlsiActions
-from .vlsi.workspace import VlsiPage
+from ..workspaces.logisim.workspace import WorkspacePage
+from ..workspaces.systemverilog.actions import SystemVerilogActions
+from ..workspaces.systemverilog.workspace import SystemVerilogPage
+from ..workspaces.verilog.actions import VlsiActions
+from ..workspaces.verilog.workspace import VlsiPage
 from .theme import SCALES, system_dark
 
 WORKSPACES = ("logisim", "multisim", "vlsi", "systemverilog")        # the pages the menus and shortcuts act on
@@ -66,9 +66,10 @@ class MainWindow:
             if hasattr(v, "main"): v.main = self
         self.pages["settings"] = SettingsPage(ctx, self.stage, self)
         self.commands = build_commands(self)
-        self.menubar = MenuBar(ctx, self.top, self); self.menubar.pack(fill="x"); self.menubar.line.pack(in_=self.top, fill="x")
+        self.menubar = MenuBar(ctx, self.top, self); self.menubar.pack(fill="x", padx=6, pady=(5, 2))
         self.status = StatusBar(ctx, self.bottom, self); self.status.place_bar()
         self.stage.pack(fill="both", expand=True)
+        for f in (root, self.top, self.mid, self.col, self.stage, self.bottom, *self.pages.values()): ctx.glass.attach(f)      # the glass backdrop shows through every container
         self._bind_keys()
         ctx.themed.append(lambda: [w.configure(bg=ctx.P["bg"]) for w in (root, self.stage, self.col, self.mid, self.top, self.bottom)])
         ctx.apply(); self.adoc.load_sample(); self.vdoc.load_sample(); self.sdoc.load_sample(); self.doc.load_sample()
@@ -209,7 +210,7 @@ class MainWindow:
         if self.current == "settings": self.pages["settings"].refresh()
 
     def reset_look(self):
-        for k in ("mode", "accent", "corners", "density", "text_scale", "font", "reduce_motion", "high_contrast", "theme", "rail_size", "rail_side"): self.ctx.cfg.pop(k, None)
+        for k in ("mode", "accent", "corners", "density", "text_scale", "font", "reduce_motion", "high_contrast", "theme", "rail_size", "rail_side", "glass"): self.ctx.cfg.pop(k, None)
         self.ctx.save_cfg(); self.ctx.refresh(); self.after_look(); self.ctx.toast("Appearance reset")
 
     def _focus_in(self, e):
@@ -298,15 +299,15 @@ class StatusBar(tk.Frame):
         self.items = []
         for text, fn in (("Ctrl+K  Commands", shell.open_palette), ("F1  Shortcuts", shell.show_shortcuts), ("", lambda: shell.zoom(0))):
             l = tk.Label(self, text=text, font=ctx.f_small, cursor="hand2", padx=8); l.pack(side="right", pady=3); l.bind("<Button-1>", lambda e, fn=fn: fn())
-            l.bind("<Enter>", lambda e, l=l: l.configure(bg=self.ctx.P["accent_h"] if "accent_h" in self.ctx.P else self.ctx.P["accent"])); l.bind("<Leave>", lambda e, l=l: l.configure(bg=self.ctx.P["accent"])); self.items.append(l)
-        ctx.themed.append(self.paint); self.paint()
+            l.bind("<Enter>", lambda e, l=l: l.configure(bg=self.ctx.P["soft_h"])); l.bind("<Leave>", lambda e, l=l: l.configure(bg=self.ctx.P["card"])); self.items.append(l)
+        ctx.glass.attach(self, 18, "pill", (0, 0, 0, 0)); ctx.themed.append(self.paint); self.paint()
 
     def place_bar(self):
         self.sync()
 
     def sync(self):
-        show = self.ctx.cfg.get("show_status", True)
-        if show and not self.winfo_ismapped(): self.pack(side="bottom", fill="x")
+        show = self.ctx.cfg.get("show_status", False)
+        if show and not self.winfo_ismapped(): self.pack(side="bottom", fill="x", padx=6, pady=(2, 5))
         elif not show and self.winfo_ismapped(): self.pack_forget()
 
     def refresh(self):
@@ -315,7 +316,7 @@ class StatusBar(tk.Frame):
         self.items[2].configure(text=f"Text {c.cfg.get('text_scale', 100)}%")
 
     def paint(self):
-        P = self.ctx.P; bg = P["accent"]; fg = P["accent_fg"]; self.configure(bg=bg); self.left.configure(bg=bg, fg=fg)
+        P = self.ctx.P; bg = P["card"]; fg = P["muted"]; self.configure(bg=bg); self.left.configure(bg=bg, fg=fg)
         for l in self.items: l.configure(bg=bg, fg=fg)
 
 

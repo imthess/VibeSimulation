@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 import tkinter as tk
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.ui.main_window import MainWindow
-from vibesimulation.analog import components as AC
+from vibesimulation.workspaces.multisim.engine import components as AC
 root = tk.Tk(); root.geometry("1400x850"); w = MainWindow(root); ctx = w.ctx
 ok = True
 def chk(name, c):

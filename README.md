@@ -8,20 +8,20 @@ Python and Tkinter, no cloud needed. Licensed under GPL-3.0. Version 1.3.0.
 
 ## What is in it
 
-| | |
-| --- | --- |
-| **Logisim** | Gates, multiplexers, arithmetic, flip-flops, registers, RAM/ROM, sub-circuits. Edit the drawing, the JSON and the truth table side by side. Opens and saves Logisim `.circ` files. |
-| **Multisim** | Resistors, capacitors, inductors, sources, diodes, BJTs, MOSFETs, JFETs, op-amps, transformers. DC, DC sweep, AC (phasors, Bode), transient, Thevenin/Norton, **parameter sweep, temperature sweep, Monte Carlo and noise**. A **function generator, oscilloscope and multimeter**. Exports a SPICE `.cir`. |
-| **VLSI** | Write Verilog (loops, generate, functions, memories, tri-state) and see the circuit and truth table. A testbench simulator with waveforms. |
-| **SystemVerilog** | `logic`, `always_ff` / `always_comb`, `enum`, packed `struct`, packages, `typedef`, `inside`, immediate `assert` and more, lowered to Verilog and drawn as a circuit. |
-| **Import & AI** | Turn a photo or screenshot of a circuit into an editable one (bring your own model, local or cloud). |
-| **And** | Examples gallery with tutorials, autosave and crash recovery, command palette (Ctrl+K), light and dark themes, PDF export. |
+|                   |                                                                                                                                                                                                                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Logisim**       | Gates, multiplexers, arithmetic, flip-flops, registers, RAM/ROM, sub-circuits. Edit the drawing, the JSON and the truth table side by side. Opens and saves Logisim `.circ` files.                                                                                                                          |
+| **Multisim**      | Resistors, capacitors, inductors, sources, diodes, BJTs, MOSFETs, JFETs, op-amps, transformers. DC, DC sweep, AC (phasors, Bode), transient, Thevenin/Norton, **parameter sweep, temperature sweep, Monte Carlo and noise**. A **function generator, oscilloscope and multimeter**. Exports a SPICE `.cir`. |
+| **VLSI**          | Write Verilog (loops, generate, functions, memories, tri-state) and see the circuit and truth table. A testbench simulator with waveforms.                                                                                                                                                                  |
+| **SystemVerilog** | `logic`, `always_ff` / `always_comb`, `enum`, packed `struct`, packages, `typedef`, `inside`, immediate `assert` and more, lowered to Verilog and drawn as a circuit.                                                                                                                                       |
+| **Import & AI**   | Turn a photo or screenshot of a circuit into an editable one (bring your own model, local or cloud).                                                                                                                                                                                                        |
+| **And**           | Examples gallery with tutorials, autosave and crash recovery, command palette (Ctrl+K), light and dark themes, PDF export.                                                                                                                                                                                  |
 
-| Logisim | Multisim |
-| --- | --- |
-| ![Logisim](docs/images/logisim.png) | ![Multisim](docs/images/multisim.png) |
-| **VLSI (Verilog)** | **SystemVerilog** |
-| ![VLSI](docs/images/vlsi.png) | ![SystemVerilog](docs/images/systemverilog.png) |
+| Logisim                             | Multisim                                        |
+| ----------------------------------- | ----------------------------------------------- |
+| ![Logisim](docs/images/logisim.png) | ![Multisim](docs/images/multisim.png)           |
+| **VLSI (Verilog)**                  | **SystemVerilog**                               |
+| ![VLSI](docs/images/vlsi.png)       | ![SystemVerilog](docs/images/systemverilog.png) |
 
 ## Install and run
 
@@ -97,7 +97,14 @@ vibesimulation                                # or: python -m vibesimulation
 ## Project layout
 
 ```text
-src/vibesimulation/   the program (core, components, analog, verilog, systemverilog, vlsi, ui, product ...)
+src/vibesimulation/
+  workspaces/         one folder per workspace, each split by role
+    logisim/            circuit/  json_view/  truth_table/  circ_file/
+    multisim/           engine/  schematic/  json_view/  results/  spice_file/
+    verilog/            engine/  project/  editor/  circuit/  truth_table/  simulation/
+    systemverilog/      engine/ (lowering, features/)  editor/
+    ai_import/          engine/ (providers, prompt, key detection)  ui/  settings/
+  core/ components/ layout/ export/ imports/ product/ ui/   shared by all workspaces (digital model, parts, drawing, files, window shell)
 dev/                  tests and checks (see CONTRIBUTING.md)
 packaging/            icons, PyInstaller build, Windows / macOS installer files
 docs/                 manual and screenshots

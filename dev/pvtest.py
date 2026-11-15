@@ -10,7 +10,7 @@ for f in ("a.png", "a.jpg", "a.webp"):
     v.pick_image(); root.update(); root.after(300); root.update()
     print(f, "image" if v.lbl_prev.cget("image") else "NO IMAGE", repr(v.lbl_prev.cget("text")), v.prev_box.winfo_width(), v.prev_box.winfo_height())
 os.system("import -display :97 -window root /tmp/pv/shot.png")
-import vibesimulation.ui.ai_import.import_view as iv, time
+import vibesimulation.workspaces.ai_import.ui.import_view as iv, time
 iv.ask_model = lambda *a: (time.sleep(1.0), '{"inputs":["A"],"outputs":{"Y":"A"},"components":[]}')[1]
 v.key.set("x"); v.model.set("m"); said = []; ctx.say = lambda *a: said.append(a)
 v.convert(); root.update()

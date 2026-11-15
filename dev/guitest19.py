@@ -3,10 +3,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src")); sys.pa
 import tkinter as tk
 from vibesimulation.components import load_all
 load_all()
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 from vibesimulation.core.serializer import parse
-from vibesimulation.analog.netlist import parse as aparse, to_spice
-from vibesimulation.analog.document import SAMPLE
+from vibesimulation.workspaces.multisim.engine.netlist import parse as aparse, to_spice
+from vibesimulation.workspaces.multisim.engine.document import SAMPLE
 from vibesimulation.ui.main_window import MainWindow
 from randtest import rand_circuit
 S="/tmp/claude-0/-home-claude/872dc6ac-ca5f-5a34-9449-2aadb4ac7a79/scratchpad/"

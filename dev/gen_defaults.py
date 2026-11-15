@@ -2,7 +2,7 @@
 import sys, subprocess, re, itertools, json
 sys.path.insert(0, "src")
 from vibesimulation.components import load_all, ComponentRegistry as R
-from vibesimulation.export.logisim import HEADER, FOOTER, LIB
+from vibesimulation.workspaces.logisim.circ_file.logisim import HEADER, FOOTER, LIB
 load_all()
 classes = {id(c): c for c in R._classes.values()}.values()
 skip = {"Splitter", "Combiner", "Pin"}

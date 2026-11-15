@@ -2,7 +2,7 @@
 import subprocess, sys, tempfile, re
 sys.path.insert(0, "src")
 import vibesimulation.components
-from vibesimulation.verilog.tb import run_testbench
+from vibesimulation.workspaces.verilog.engine.tb import run_testbench
 
 T = {}
 T["format"] = """module t;

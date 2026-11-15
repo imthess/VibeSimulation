@@ -11,7 +11,7 @@ class View(ABC):
     def __init__(self, ctx, doc, parent):
         from ..widgets import Card
         self.ctx, self.doc = ctx, doc
-        self.card = Card(ctx, parent, self.number, self.title, self.hint, flat=True)
+        self.card = Card(ctx, parent, self.number, self.title, self.hint, flat=False)
         self.body, self.tools = self.card.body, self.card.tools
         self.build()
         doc.subscribe(self.on_doc)

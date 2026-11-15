@@ -1,7 +1,7 @@
-; Inno Setup script (https://jrsoftware.org/isinfo.php). Build with:  iscc packaging\windows\VibeSimulation.iss /DAppVersion=1.3.0
+; Inno Setup script (https://jrsoftware.org/isinfo.php). Build with:  iscc packaging\windows\VibeSimulation.iss /DAppVersion=1.4.0
 ; Needs dist\VibeSimulation\ to exist first (python packaging\build.py).
 #ifndef AppVersion
-  #define AppVersion "1.3.0"
+  #define AppVersion "1.4.0"
 #endif
 
 [Setup]

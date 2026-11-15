@@ -1,7 +1,7 @@
 """The contents of the top menus. Each builder fills a tk menu `m` for the shell `sh`; menus_for() says which menus a page gets and in which order."""
 import os
 
-from .multisim.parts_bin import fill_place_menu
+from ..workspaces.multisim.schematic.parts_bin import fill_place_menu
 
 
 def _acc(sh, title): return sh.menubar.acc(title) if hasattr(sh, "menubar") else ""
@@ -22,7 +22,7 @@ def menus_for(sh, page):
         return [("File", lambda m: file_menu(sh, m)), ("Edit", lambda m: edit_logisim(sh, m)), ("Project", lambda m: project_menu(sh, m)),
                 ("Simulate", lambda m: simulate_logisim(sh, m))] + common_end
     if page in ("vlsi", "systemverilog"):
-        from .vlsi.menus import menus_for as vlsi_menus            # the SystemVerilog page uses the same menus on its own document and actions
+        from ..workspaces.verilog.menus import menus_for as vlsi_menus            # the SystemVerilog page uses the same menus on its own document and actions
         return vlsi_menus(sh)
     if page == "multisim":
         return [("File", lambda m: file_menu(sh, m)), ("Edit", lambda m: edit_multisim(sh, m)), ("View", lambda m: view_menu(sh, m)), ("Place", lambda m: place_menu(sh, m)),
@@ -180,7 +180,7 @@ def tools_multisim(sh, m):
     sv = _sv(sh)
     m.add_command(label="Put all parts back in automatic places", command=sv.tidy)
     m.add_separator()
-    from .multisim.instruments import INSTRUMENTS, open_instrument
+    from ..workspaces.multisim.results.instruments import INSTRUMENTS, open_instrument
     for name in INSTRUMENTS: m.add_command(label=name + "…", command=lambda name=name: open_instrument(sh.ctx, sv.doc, name, sh.__dict__.setdefault("_instruments", {})))
     m.add_separator()
     m.add_command(label="Show the component database", command=lambda: sh.show_side(True))

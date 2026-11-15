@@ -2,8 +2,8 @@
 import sys, os, json, math
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse, to_spice
-from vibesimulation.analog import scope as SC, meter as ME, components as C
+from vibesimulation.workspaces.multisim.engine.netlist import parse, to_spice
+from vibesimulation.workspaces.multisim.engine import scope as SC, meter as ME, components as C
 bad = 0
 def ok(c, m):
     global bad

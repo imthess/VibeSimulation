@@ -3,7 +3,7 @@ import random, sys
 sys.path.insert(0, "dev"); sys.path.insert(0, "src")
 import vfuzz_expr as FE
 from vcheck import compare
-from vibesimulation.verilog.lexer import VError
+from vibesimulation.workspaces.verilog.engine.lexer import VError
 
 def expr(r, d=2): return FE.gen(r, d)
 

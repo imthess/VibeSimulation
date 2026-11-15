@@ -5,7 +5,7 @@ from vibesimulation.core.document import Document, SAMPLE
 from vibesimulation.core import commands as C
 from vibesimulation.core.serializer import dumps, parse
 from vibesimulation.layout.engine import LayoutEngine
-from vibesimulation.export.logisim import to_circ
+from vibesimulation.workspaces.logisim.circ_file.logisim import to_circ
 d = Document(); d.load_sample(); assert d.valid
 pl = {p.comp.id: (p.x, p.y) for p in d.layout.parts}; print(pl)
 x, y = pl["g3"]

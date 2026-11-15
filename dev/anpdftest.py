@@ -1,9 +1,9 @@
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from vibesimulation.components import load_all; load_all()
-from vibesimulation.analog.netlist import parse
-from vibesimulation.analog.document import SAMPLE
-from vibesimulation.analog.layout import SchematicBuilder
+from vibesimulation.workspaces.multisim.engine.netlist import parse
+from vibesimulation.workspaces.multisim.engine.document import SAMPLE
+from vibesimulation.workspaces.multisim.engine.layout import SchematicBuilder
 from vibesimulation.export.pdf import make_analog_pdf
 import json
 nl, e = parse(json.dumps(SAMPLE)); assert not e and not nl.validate()

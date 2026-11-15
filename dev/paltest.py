@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 import tkinter as tk
 from vibesimulation.components import load_all; load_all()
 from vibesimulation.ui.main_window import MainWindow
-from vibesimulation.ui.logisim.parts_palette import PaletteDialog
+from vibesimulation.workspaces.logisim.circuit.parts_palette import PaletteDialog
 root = tk.Tk(); root.geometry("1280x800"); w = MainWindow(root); ctx = w.ctx; root.update()
 d = PaletteDialog(ctx); d.update()
 t = d.tree

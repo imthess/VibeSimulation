@@ -16,7 +16,7 @@ w.adoc.load_text(json.dumps(CIR)); w.show("multisim"); root.update()
 d = w.adoc; chk("valid", d.valid and not d.errors)
 sv = w.pages["multisim"].views["schematic"]; rv = w.pages["multisim"].views["results"]; root.update()
 # source edit through the form (monkeypatch the dialog)
-ctx.ask_form = lambda title, msg, fields, check=None: {"value": "2", "ac": "3", "freq": "60", "phase": "20", "wave": "square"}
+ctx.ask_form = lambda title, msg, fields, check=None: {"value": "2", "ac": "3", "freq": "60", "phase": "20", "wave": "square", "duty": "50"}
 sv.source(d.netlist.part("V1")); root.update()
 p = d.netlist.part("V1"); chk("source form applied", p.number() == 2 and p.ac_amp() == 3 and p.extra["wave"] == "square" and p.freq() == 60)
 d.undo(); root.update(); chk("undo", d.netlist.part("V1").ac_amp() == 1)

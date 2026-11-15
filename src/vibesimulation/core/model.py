@@ -87,6 +87,7 @@ class IOPin:
     def __init__(self, name, width=1):
         self.name, self.width = name, width
         self.pos = None        # (x, y) where the user dragged this pin to; None = automatic
+        self.floating = False  # an output pin the user placed but has not connected to a signal yet (only while editing)
 
 
 # ----------------------------------------------------------------------------- component
@@ -360,7 +361,7 @@ class Circuit:
                 elif widths.get(s) != p.width:
                     errs.append(f"{c.id}: pin {p.name} is {p.width} bit(s) but '{s}' is {widths.get(s)} bit(s)")
         for o in self.outputs:
-            if o.name not in driven: errs.append(f"Output '{o.name}' is not driven by anything")
+            if o.name not in driven and not (loose and o.floating): errs.append(f"Output '{o.name}' is not driven by anything")
         if not errs:
             try:
                 if self.flat().order() is None: errs.append("Circuit contains a loop")
@@ -417,13 +418,15 @@ class Circuit:
                 if s is None: continue
                 x = res.get(p.name) if (res or c.handles_error) else None
                 v[s] = None if x is None else x & mask(p.width)
+        for o in self.outputs:
+            if o.floating: v.setdefault(o.name, None)          # a loose output pin shows nothing
         return v
 
     def table(self, max_bits=12):
         """(input names, hidden names, output names, rows) or None when there are too many input bits."""
         if sum(p.width for p in self.inputs) > max_bits or self.has_seq():
             return None
-        outs = list(dict.fromkeys(self.output_names()))
+        outs = list(dict.fromkeys(p.name for p in self.outputs if not p.floating))
         mids = [s for c in (self.order() or []) for s in c.outs.values() if s not in outs]
         mids = list(dict.fromkeys(mids))
         names = self.input_names()
