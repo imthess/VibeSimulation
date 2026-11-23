@@ -1,0 +1,4 @@
+"""VLSI pane 3: the truth table of the circuit the Verilog describes (same table as Logisim's, on the VLSI document)."""
+from vibesimulation.workspaces.logisim.truth_table.truth_table import TableView
+class VlsiTableView(TableView):
+    number, title, hint = None, "Truth table", ""
